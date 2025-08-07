@@ -102,7 +102,7 @@ export function AppSidebar() {
         }
       }}
     >
-      <SidebarContent className="overflow-hidden">
+      <SidebarContent className="overflow-hidden max-w-full">
         <div className="flex mt-8">
           {/* Left Column: Menu items */}
           <div className="">

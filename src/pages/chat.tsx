@@ -40,7 +40,7 @@ export default function ChatPage() {
   const ref = useRef<ImperativePanelHandle>(null);
 
   return (
-    <PanelGroup autoSaveId="persistence" direction="horizontal">
+    <PanelGroup autoSaveId="persistence" direction="horizontal" className="max-w-full">
       <Panel id="chat-panel" minSize={30}>
         <div className="h-full w-full">
           <ChatPanel

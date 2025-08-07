@@ -143,7 +143,7 @@ export default function HomePage() {
   // Loading overlay for app creation
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center max-w-3xl m-auto p-8">
+      <div className="flex flex-col items-center justify-center w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="w-full flex flex-col items-center">
           {/* Loading Spinner */}
           <div className="relative w-24 h-24 mb-8">
@@ -164,7 +164,7 @@ export default function HomePage() {
 
   // Main Home Page Content
   return (
-    <div className="flex flex-col items-center justify-center max-w-3xl m-auto p-8">
+    <div className="flex flex-col items-center justify-center w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <SetupBanner />
 
       <div className="w-full">

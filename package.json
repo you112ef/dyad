@@ -32,7 +32,10 @@
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "extract-codebase": "ts-node scripts/extract-codebase.ts",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "dev:web": "vite --config vite.renderer.config.mts",
+    "build:web": "vite build --config vite.renderer.config.mts --outDir dist",
+    "preview:web": "vite preview --config vite.renderer.config.mts --outDir dist"
   },
   "keywords": [],
   "author": {

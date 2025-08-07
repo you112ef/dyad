@@ -23,7 +23,11 @@ export const TitleBar = () => {
   const [showWindowControls, setShowWindowControls] = useState(false);
 
   useEffect(() => {
-    // Check if we're running on Windows
+    const isWeb = typeof window !== "undefined" && !(window as any)?.electron;
+    if (isWeb) {
+      setShowWindowControls(false);
+      return;
+    }
     const checkPlatform = async () => {
       try {
         const platform = await IpcClient.getInstance().getSystemPlatform();
@@ -32,7 +36,6 @@ export const TitleBar = () => {
         console.error("Failed to get platform info:", error);
       }
     };
-
     checkPlatform();
   }, []);
 

@@ -21,3 +21,13 @@ No sign-up required. Just download and go.
 **dyad** is open source (Apache 2.0-licensed).
 
 If you're interested in contributing to dyad, please read our [contributing](./CONTRIBUTING.md) doc.
+
+# Dyad
+
+## Cloudflare Pages (web demo)
+
+- Build: `npm run build:web` (outputs to `dist/`)
+- Deploy to Cloudflare Pages and set build output directory to `dist`
+- SPA routing is enabled via `public/_redirects`
+
+Electron features are stubbed in the browser. Chat runs as a demo using localStorage.
