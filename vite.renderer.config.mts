@@ -16,13 +16,32 @@ export default defineConfig({
         "assets/logo.png",
       ],
       manifest: {
+        id: "/",
         name: "Dyad",
         short_name: "Dyad",
+        description: "Build and chat about your apps with Dyad.",
+        lang: "ar",
+        dir: "auto",
         start_url: "/",
+        scope: "/",
         display: "standalone",
+        orientation: "portrait",
         background_color: "#ffffff",
         theme_color: "#4f46e5",
+        categories: ["productivity", "developer-tools"],
         icons: [
+          {
+            src: "/assets/logo_transparent.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "any maskable",
+          },
+          {
+            src: "/assets/logo.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "any",
+          },
           {
             src: "/assets/logo_transparent.png",
             sizes: "512x512",
@@ -34,7 +53,21 @@ export default defineConfig({
             sizes: "512x512",
             type: "image/png",
             purpose: "any",
+          }
+        ],
+        shortcuts: [
+          {
+            name: "New Chat",
+            short_name: "Chat",
+            url: "/chat",
+            icons: [{ src: "/assets/logo_transparent.png", sizes: "192x192", type: "image/png" }]
           },
+          {
+            name: "Settings",
+            short_name: "Settings",
+            url: "/settings",
+            icons: [{ src: "/assets/logo.png", sizes: "192x192", type: "image/png" }]
+          }
         ],
       },
       workbox: {
