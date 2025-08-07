@@ -216,6 +216,12 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  @media (max-width: 360px) {
+    html {
+      font-size: 14px;
+    }
+  }
 }
 
 @layer base {
