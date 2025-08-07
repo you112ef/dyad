@@ -11,10 +11,10 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: [
-        "assets/logo_transparent.png",
-        "assets/logo.png",
-      ],
+             includeAssets: [
+         "icons/icon-192.png",
+         "icons/icon-512.png",
+       ],
       manifest: {
         id: "/",
         name: "Dyad",
@@ -31,25 +31,25 @@ export default defineConfig({
         categories: ["productivity", "developer-tools"],
         icons: [
           {
-            src: "/assets/logo_transparent.png",
+            src: "/icons/icon-192.png",
             sizes: "192x192",
             type: "image/png",
             purpose: "any maskable",
           },
           {
-            src: "/assets/logo.png",
+            src: "/icons/icon-192.png",
             sizes: "192x192",
             type: "image/png",
             purpose: "any",
           },
           {
-            src: "/assets/logo_transparent.png",
+            src: "/icons/icon-512.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "any maskable",
           },
           {
-            src: "/assets/logo.png",
+            src: "/icons/icon-512.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "any",
