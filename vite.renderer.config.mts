@@ -11,10 +11,10 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-             includeAssets: [
-         "icons/icon-192.png",
-         "icons/icon-512.png",
-       ],
+      includeAssets: [
+        "icons/icon-192.png",
+        "icons/icon-512.png",
+      ],
       manifest: {
         id: "/",
         name: "Dyad",
@@ -25,10 +25,12 @@ export default defineConfig({
         start_url: "/",
         scope: "/",
         display: "standalone",
+        display_override: ["standalone", "minimal-ui", "browser"],
         orientation: "portrait",
         background_color: "#ffffff",
         theme_color: "#4f46e5",
         categories: ["productivity", "developer-tools"],
+        prefer_related_applications: false,
         icons: [
           {
             src: "/icons/icon-192.png",
@@ -60,13 +62,13 @@ export default defineConfig({
             name: "New Chat",
             short_name: "Chat",
             url: "/chat",
-            icons: [{ src: "/assets/logo_transparent.png", sizes: "192x192", type: "image/png" }]
+            icons: [{ src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }]
           },
           {
             name: "Settings",
             short_name: "Settings",
             url: "/settings",
-            icons: [{ src: "/assets/logo.png", sizes: "192x192", type: "image/png" }]
+            icons: [{ src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }]
           }
         ],
       },
@@ -97,11 +99,27 @@ export default defineConfig({
           },
         ],
       },
+      devOptions: {
+        enabled: true,
+      },
     }),
   ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  build: {
+    chunkSizeWarningLimit: 3000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ["react", "react-dom"],
+          router: ["@tanstack/react-router", "@tanstack/react-query"],
+          monaco: ["monaco-editor", "@monaco-editor/react"],
+          shiki: ["shiki", "react-shiki"],
+        },
+      },
     },
   },
 });
