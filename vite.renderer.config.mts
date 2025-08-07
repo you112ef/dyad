@@ -39,6 +39,7 @@ export default defineConfig({
       },
       workbox: {
         navigateFallback: "/index.html",
+        maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.destination === "document",
