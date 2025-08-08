@@ -493,43 +493,15 @@ export class WebIpcClient {
     providerId: string;
   }): Promise<LanguageModel[]> {
     const providerId = _params.providerId;
-    const MODEL_OPTIONS: Record<string, Array<LanguageModel>> = {
-      openai: [
-        { apiName: "gpt-4.1", displayName: "GPT 4.1", description: "", type: "cloud" },
-        { apiName: "gpt-4.1-mini", displayName: "GPT 4.1 Mini", description: "", type: "cloud" },
-      ],
-      anthropic: [
-        { apiName: "claude-3-7-sonnet-latest", displayName: "Claude 3.7 Sonnet", description: "", type: "cloud" },
-        { apiName: "claude-3-5-haiku-20241022", displayName: "Claude 3.5 Haiku", description: "", type: "cloud" },
-      ],
-      google: [
-        { apiName: "gemini-2.5-pro-preview-05-06", displayName: "Gemini 2.5 Pro", description: "", type: "cloud" },
-        { apiName: "gemini-2.5-flash-preview-04-17", displayName: "Gemini 2.5 Flash", description: "", type: "cloud" },
-      ],
-      openrouter: [
-        { apiName: "deepseek/deepseek-chat-v3-0324:free", displayName: "DeepSeek v3 (free)", description: "", type: "cloud" },
-      ],
-      groq: [
-        { apiName: "llama-3.1-70b-versatile", displayName: "Llama 3.1 70B (Groq)", description: "", type: "cloud" },
-        { apiName: "llama-3.1-8b-instant", displayName: "Llama 3.1 8B (Groq)", description: "", type: "cloud" },
-        { apiName: "mixtral-8x7b-32768", displayName: "Mixtral 8x7B 32k (Groq)", description: "", type: "cloud" },
-      ],
-      mistral: [
-        { apiName: "mistral-large-latest", displayName: "Mistral Large", description: "", type: "cloud" },
-        { apiName: "mistral-small-latest", displayName: "Mistral Small", description: "", type: "cloud" },
-        { apiName: "codestral-latest", displayName: "Codestral", description: "", type: "cloud" },
-      ],
-      xai: [
-        { apiName: "grok-2-latest", displayName: "Grok 2", description: "", type: "cloud" },
-        { apiName: "grok-2-mini", displayName: "Grok 2 Mini", description: "", type: "cloud" },
-      ],
-      deepseek: [
-        { apiName: "deepseek-chat", displayName: "DeepSeek Chat", description: "", type: "cloud" },
-        { apiName: "deepseek-reasoner", displayName: "DeepSeek Reasoner", description: "", type: "cloud" },
-      ],
-    } as any;
-
-    return MODEL_OPTIONS[providerId] || [];
+    // Fetch live models list from server-side API using env keys
+    try {
+      const res = await fetch(`/api/models?providerId=${encodeURIComponent(providerId)}`);
+      if (res.ok) {
+        const models = (await res.json()) as LanguageModel[];
+        return models;
+      }
+    } catch {}
+    return [];
   }
 
   public async getLanguageModelsByProviders(): Promise<
