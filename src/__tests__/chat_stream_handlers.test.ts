@@ -39,42 +39,37 @@ vi.mock("../paths/paths", () => ({
   }),
 }));
 
-vi.mock("../db", () => {
-  const updateChain = {
-    set: vi.fn().mockReturnThis(),
-    where: vi.fn().mockResolvedValue(undefined),
-  } as any;
-  const dbMockLocal = {
+// DB mocks bound via closures so we can control return values without requiring the module
+let chatsFindFirstMock = vi.fn();
+let updateSetMock = vi.fn().mockReturnThis();
+let updateWhereMock = vi.fn().mockResolvedValue(undefined);
+
+vi.mock("../db", () => ({
+  db: {
     query: {
       chats: {
-        findFirst: vi.fn(),
+        findFirst: (...args: any[]) => chatsFindFirstMock(...args),
       },
     },
-    update: vi.fn(() => updateChain),
-  } as any;
-  return { db: dbMockLocal };
-});
-vi.mock("../../db", () => {
-  const updateChain = {
-    set: vi.fn().mockReturnThis(),
-    where: vi.fn().mockResolvedValue(undefined),
-  } as any;
-  const dbMockLocal = {
+    update: () => ({ set: (...a: any[]) => updateSetMock(...a), where: (...a: any[]) => updateWhereMock(...a) }),
+  },
+}));
+
+vi.mock("../../db", () => ({
+  db: {
     query: {
       chats: {
-        findFirst: vi.fn(),
+        findFirst: (...args: any[]) => chatsFindFirstMock(...args),
       },
     },
-    update: vi.fn(() => updateChain),
-  } as any;
-  return { db: dbMockLocal };
-});
+    update: () => ({ set: (...a: any[]) => updateSetMock(...a), where: (...a: any[]) => updateWhereMock(...a) }),
+  },
+}));
 
 beforeEach(() => {
   // Reset mocks
   vi.clearAllMocks();
-  const mockedDb = require("../../db").db;
-  mockedDb.query.chats.findFirst = vi.fn().mockResolvedValue({
+  chatsFindFirstMock = vi.fn().mockResolvedValue({
     id: 1,
     appId: 1,
     title: "Test Chat",
@@ -88,6 +83,8 @@ beforeEach(() => {
     },
     messages: [],
   } as any);
+  updateSetMock = vi.fn().mockReturnThis();
+  updateWhereMock = vi.fn().mockResolvedValue(undefined);
 });
 
 describe("getDyadAddDependencyTags", () => {
