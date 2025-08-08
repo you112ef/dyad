@@ -167,7 +167,13 @@ export class WebIpcClient {
     this.writeChats(chats);
 
     return {
-      app,
+      app: {
+        id: app.id,
+        name: app.name,
+        path: app.path,
+        createdAt: app.createdAt.toISOString(),
+        updatedAt: app.updatedAt.toISOString(),
+      } as any,
       chatId,
     } as CreateAppResult;
   }
@@ -232,10 +238,11 @@ export class WebIpcClient {
         const settings = await this.getUserSettings();
         const provider = settings.selectedModel?.provider || undefined;
         const model = settings.selectedModel?.name || undefined;
+        const clientKey = provider ? settings?.providerSettings?.[provider]?.apiKey?.value : undefined;
         const res = await fetch("/api/chat", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ prompt, provider, model }),
+          body: JSON.stringify({ prompt, provider, model, clientKey }),
         });
         const assistantMsgId = this.nextId("message");
         if (!res.ok) {
@@ -465,14 +472,14 @@ export class WebIpcClient {
   public async getLanguageModelProviders(): Promise<LanguageModelProvider[]> {
     // Base providers available in web demo
     const base: LanguageModelProvider[] = [
-      { id: "openai", name: "OpenAI", type: "cloud" } as any,
-      { id: "anthropic", name: "Anthropic", type: "cloud" } as any,
-      { id: "google", name: "Google", type: "cloud" } as any,
-      { id: "openrouter", name: "OpenRouter", type: "cloud" } as any,
-      { id: "groq", name: "Groq", type: "cloud" } as any,
-      { id: "mistral", name: "Mistral", type: "cloud" } as any,
-      { id: "xai", name: "xAI", type: "cloud" } as any,
-      { id: "deepseek", name: "DeepSeek", type: "cloud" } as any,
+      { id: "openai", name: "OpenAI", type: "cloud", hasFreeTier: false, websiteUrl: "https://platform.openai.com/api-keys" } as any,
+      { id: "anthropic", name: "Anthropic", type: "cloud", hasFreeTier: false, websiteUrl: "https://console.anthropic.com/settings/keys" } as any,
+      { id: "google", name: "Google", type: "cloud", hasFreeTier: true, websiteUrl: "https://aistudio.google.com/app/apikey" } as any,
+      { id: "openrouter", name: "OpenRouter", type: "cloud", hasFreeTier: true, websiteUrl: "https://openrouter.ai/settings/keys" } as any,
+      { id: "groq", name: "Groq", type: "cloud", hasFreeTier: true, websiteUrl: "https://console.groq.com/keys" } as any,
+      { id: "mistral", name: "Mistral", type: "cloud", hasFreeTier: true, websiteUrl: "https://console.mistral.ai/api-keys/" } as any,
+      { id: "xai", name: "xAI", type: "cloud", hasFreeTier: false, websiteUrl: "https://console.x.ai/" } as any,
+      { id: "deepseek", name: "DeepSeek", type: "cloud", hasFreeTier: true, websiteUrl: "https://platform.deepseek.com/" } as any,
     ];
 
     // Try to augment with providers exposed by the /api/providers endpoint (if running behind CF Pages)
@@ -493,7 +500,23 @@ export class WebIpcClient {
     providerId: string;
   }): Promise<LanguageModel[]> {
     const providerId = _params.providerId;
-    // Fetch live models list from server-side API using env keys
+
+    // Attempt server-side fetch with optional client key (avoids CORS)
+    try {
+      const settings = await this.getUserSettings();
+      const clientKey = settings?.providerSettings?.[providerId]?.apiKey?.value;
+      const res = await fetch(`/api/models`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ providerId, clientKey }),
+      });
+      if (res.ok) {
+        const models = (await res.json()) as LanguageModel[];
+        if (Array.isArray(models) && models.length >= 0) return models;
+      }
+    } catch {}
+
+    // Fallback to GET without client key
     try {
       const res = await fetch(`/api/models?providerId=${encodeURIComponent(providerId)}`);
       if (res.ok) {

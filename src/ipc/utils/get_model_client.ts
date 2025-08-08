@@ -204,7 +204,7 @@ function getRegularModelClient(
   // Create client based on provider ID or type
   switch (providerId) {
     case "openai": {
-      const provider = createOpenAI({ apiKey });
+      const provider = createOpenAI({ apiKey: apiKey ?? "" });
       return {
         modelClient: {
           model: provider(model.name),
@@ -214,7 +214,7 @@ function getRegularModelClient(
       };
     }
     case "anthropic": {
-      const provider = createAnthropic({ apiKey });
+      const provider = createAnthropic({ apiKey: apiKey ?? "" });
       return {
         modelClient: {
           model: provider(model.name),
@@ -224,7 +224,7 @@ function getRegularModelClient(
       };
     }
     case "google": {
-      const provider = createGoogle({ apiKey });
+      const provider = createGoogle({ apiKey: apiKey ?? "" });
       return {
         modelClient: {
           model: provider(model.name),
@@ -234,7 +234,7 @@ function getRegularModelClient(
       };
     }
     case "openrouter": {
-      const provider = createOpenRouter({ apiKey });
+      const provider = createOpenRouter({ apiKey: apiKey ?? "" });
       return {
         modelClient: {
           model: provider(model.name),
@@ -248,10 +248,17 @@ function getRegularModelClient(
     case "xai":
     case "deepseek": {
       // Treat as OpenAI-compatible providers when configured via custom/builtin cloud entry
+      const builtinBaseUrls: Record<string, string> = {
+        groq: "https://api.groq.com/openai/v1",
+        mistral: "https://api.mistral.ai/v1",
+        xai: "https://api.x.ai/v1",
+        deepseek: "https://api.deepseek.com",
+      };
+      const baseURL = providerConfig.apiBaseUrl ?? builtinBaseUrls[providerId] ?? "";
       const provider = createOpenAICompatible({
         name: providerId,
-        baseURL: providerConfig.apiBaseUrl,
-        apiKey,
+        baseURL,
+        apiKey: apiKey ?? "",
       });
       return {
         modelClient: {
@@ -299,7 +306,7 @@ function getRegularModelClient(
         const provider = createOpenAICompatible({
           name: providerConfig.id,
           baseURL: providerConfig.apiBaseUrl,
-          apiKey,
+          apiKey: apiKey ?? "",
         });
         return {
           modelClient: {

@@ -10,7 +10,7 @@ import type { LanguageModelProvider } from "@/ipc/ipc_types";
 
 import { useLanguageModelProviders } from "@/hooks/useLanguageModelProviders";
 import { useCustomLanguageModelProvider } from "@/hooks/useCustomLanguageModelProvider";
-import { GiftIcon, PlusIcon, MoreVertical, Trash2 } from "lucide-react";
+import { GiftIcon, PlusIcon, MoreVertical, Trash2, ExternalLink } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { AlertTriangle } from "lucide-react";
@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { CreateCustomProviderDialog } from "./CreateCustomProviderDialog";
+import { IpcClient } from "@/ipc/ipc_client";
 
 export function ProviderSettingsGrid() {
   const navigate = useNavigate();
@@ -118,15 +119,29 @@ export function ProviderSettingsGrid() {
                 >
                   <CardTitle className="text-xl flex items-center justify-between">
                     {provider.name}
-                    {isProviderSetup(provider.id) ? (
-                      <span className="ml-3 text-sm font-medium text-green-500 bg-green-50 dark:bg-green-900/30 border border-green-500/50 dark:border-green-500/50 px-2 py-1 rounded-full">
-                        Ready
-                      </span>
-                    ) : (
-                      <span className="text-sm text-gray-500 bg-gray-50 dark:bg-gray-900 dark:text-gray-300 px-2 py-1 rounded-full">
-                        Needs Setup
-                      </span>
-                    )}
+                    <span className="flex items-center gap-2">
+                      {provider.websiteUrl && (
+                        <button
+                          className="text-muted-foreground hover:text-foreground"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            IpcClient.getInstance().openExternalUrl(provider.websiteUrl!);
+                          }}
+                          title="Open provider API page"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </button>
+                      )}
+                      {isProviderSetup(provider.id) ? (
+                        <span className="ml-3 text-sm font-medium text-green-500 bg-green-50 dark:bg-green-900/30 border border-green-500/50 dark:border-green-500/50 px-2 py-1 rounded-full">
+                          Ready
+                        </span>
+                      ) : (
+                        <span className="text-sm text-gray-500 bg-gray-50 dark:bg-gray-900 dark:text-gray-300 px-2 py-1 rounded-full">
+                          Needs Setup
+                        </span>
+                      )}
+                    </span>
                   </CardTitle>
                   <CardDescription>
                     {provider.hasFreeTier && (
