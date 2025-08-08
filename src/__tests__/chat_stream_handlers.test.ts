@@ -51,7 +51,16 @@ vi.mock("../db", () => ({
         findFirst: (...args: any[]) => chatsFindFirstMock(...args),
       },
     },
-    update: () => ({ set: (...a: any[]) => updateSetMock(...a), where: (...a: any[]) => updateWhereMock(...a) }),
+    update: () => {
+      const updateChain = {
+        set: (...a: any[]) => {
+          updateSetMock(...a);
+          return updateChain;
+        },
+        where: (...a: any[]) => updateWhereMock(...a),
+      } as any;
+      return updateChain;
+    },
   },
 }));
 
@@ -62,7 +71,16 @@ vi.mock("../../db", () => ({
         findFirst: (...args: any[]) => chatsFindFirstMock(...args),
       },
     },
-    update: () => ({ set: (...a: any[]) => updateSetMock(...a), where: (...a: any[]) => updateWhereMock(...a) }),
+    update: () => {
+      const updateChain = {
+        set: (...a: any[]) => {
+          updateSetMock(...a);
+          return updateChain;
+        },
+        where: (...a: any[]) => updateWhereMock(...a),
+      } as any;
+      return updateChain;
+    },
   },
 }));
 
