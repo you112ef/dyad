@@ -226,16 +226,36 @@ export class WebIpcClient {
     this.writeChats(chats);
     options.onUpdate(chat.messages);
 
-    // simulate assistant
-    setTimeout(() => {
-      const assistantMsgId = this.nextId("message");
-      const assistantText =
-        "This is a web demo running on Cloudflare Pages. Configure providers in Settings to enable real responses.";
-      chat.messages.push({ id: assistantMsgId, role: "assistant", content: assistantText });
-      this.writeChats(chats);
-      options.onUpdate(chat.messages);
-      options.onEnd({ chatId: options.chatId, updatedFiles: false });
-    }, 600);
+    // call serverless API for real response
+    (async () => {
+      try {
+        const settings = await this.getUserSettings();
+        const provider = settings.selectedModel?.provider || undefined;
+        const model = settings.selectedModel?.name || undefined;
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ prompt, provider, model }),
+        });
+        const assistantMsgId = this.nextId("message");
+        if (!res.ok) {
+          const txt = await res.text();
+          chat.messages.push({ id: assistantMsgId, role: "assistant", content: `Error: ${txt}` });
+        } else {
+          const data = (await res.json()) as { content?: string; error?: string };
+          chat.messages.push({ id: assistantMsgId, role: "assistant", content: data.content || data.error || "" });
+        }
+        this.writeChats(chats);
+        options.onUpdate(chat.messages);
+        options.onEnd({ chatId: options.chatId, updatedFiles: false });
+      } catch (e: any) {
+        const assistantMsgId = this.nextId("message");
+        chat.messages.push({ id: assistantMsgId, role: "assistant", content: `Error: ${String(e?.message || e)}` });
+        this.writeChats(chats);
+        options.onUpdate(chat.messages);
+        options.onEnd({ chatId: options.chatId, updatedFiles: false });
+      }
+    })();
   }
 
   public cancelChatStream(_chatId: number): void {
