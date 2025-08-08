@@ -28,27 +28,91 @@ vi.mock("isomorphic-git", () => ({
   default: {
     add: vi.fn().mockResolvedValue(undefined),
     remove: vi.fn().mockResolvedValue(undefined),
-    commit: vi.fn().mockResolvedValue(undefined),
+    commit: vi.fn().mockResolvedValue("mock-commit"),
+    statusMatrix: vi.fn().mockResolvedValue([]),
   },
 }));
 
-// Mock paths module to control getDyadAppPath
+// Mock paths module to control getDyadAppPath and getUserDataPath
 vi.mock("../paths/paths", () => ({
   getDyadAppPath: vi.fn().mockImplementation((appPath) => {
     return `/mock/user/data/path/${appPath}`;
   }),
+  getUserDataPath: vi.fn().mockReturnValue("/mock/user/data/path"),
 }));
 
-// Mock db
+// DB mocks bound via closures so we can control return values without requiring the module
+let chatsFindFirstMock = vi.fn();
+let messagesFindFirstMock = vi.fn();
+let updateSetMock = vi.fn().mockReturnThis();
+let updateWhereMock = vi.fn().mockResolvedValue(undefined);
+
 vi.mock("../db", () => ({
   db: {
     query: {
       chats: {
-        findFirst: vi.fn(),
+        findFirst: (...args: any[]) => chatsFindFirstMock(...args),
+      },
+      messages: {
+        findFirst: (...args: any[]) => messagesFindFirstMock(...args),
       },
     },
+    update: () => ({
+      set: (...a: any[]) => {
+        updateSetMock(...a);
+        return { where: (...b: any[]) => updateWhereMock(...b) } as any;
+      },
+      where: (...a: any[]) => updateWhereMock(...a),
+    }),
   },
 }));
+
+vi.mock("../../db", () => ({
+  db: {
+    query: {
+      chats: {
+        findFirst: (...args: any[]) => chatsFindFirstMock(...args),
+      },
+      messages: {
+        findFirst: (...args: any[]) => messagesFindFirstMock(...args),
+      },
+    },
+    update: () => ({
+      set: (...a: any[]) => {
+        updateSetMock(...a);
+        return { where: (...b: any[]) => updateWhereMock(...b) } as any;
+      },
+      where: (...a: any[]) => updateWhereMock(...a),
+    }),
+  },
+}));
+
+beforeEach(() => {
+  // Reset mocks
+  vi.clearAllMocks();
+  chatsFindFirstMock = vi.fn().mockResolvedValue({
+    id: 1,
+    appId: 1,
+    title: "Test Chat",
+    createdAt: new Date(),
+    app: {
+      id: 1,
+      name: "Mock App",
+      path: "mock-app-path",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    messages: [],
+  } as any);
+  messagesFindFirstMock = vi.fn().mockResolvedValue({
+    id: 1,
+    chatId: 1,
+    role: "assistant",
+    content: "",
+  } as any);
+  updateSetMock = vi.fn().mockReturnThis();
+  updateWhereMock = vi.fn().mockResolvedValue(undefined);
+});
 
 describe("getDyadAddDependencyTags", () => {
   it("should return an empty array when no dyad-add-dependency tags are found", () => {
@@ -500,7 +564,7 @@ describe("processFullResponse", () => {
     vi.clearAllMocks();
 
     // Mock db query response
-    vi.mocked(db.query.chats.findFirst).mockResolvedValue({
+    chatsFindFirstMock.mockResolvedValue({
       id: 1,
       appId: 1,
       title: "Test Chat",
@@ -528,7 +592,7 @@ describe("processFullResponse", () => {
         messageId: 1,
       },
     );
-    expect(result).toEqual({});
+    expect(result).toEqual({ updatedFiles: false });
     expect(fs.mkdirSync).not.toHaveBeenCalled();
     expect(fs.writeFileSync).not.toHaveBeenCalled();
   });
@@ -703,7 +767,7 @@ describe("processFullResponse", () => {
     expect(fs.mkdirSync).toHaveBeenCalled();
     expect(fs.renameSync).not.toHaveBeenCalled();
     expect(git.commit).not.toHaveBeenCalled();
-    expect(result).toEqual({});
+    expect(result).toEqual({ updatedFiles: false });
   });
 
   it("should process dyad-delete tags and delete files", async () => {
@@ -744,7 +808,7 @@ describe("processFullResponse", () => {
     expect(fs.unlinkSync).not.toHaveBeenCalled();
     expect(git.remove).not.toHaveBeenCalled();
     expect(git.commit).not.toHaveBeenCalled();
-    expect(result).toEqual({});
+    expect(result).toEqual({ updatedFiles: false });
   });
 
   it("should process mixed operations (write, rename, delete) in one response", async () => {

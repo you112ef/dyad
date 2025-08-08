@@ -116,12 +116,14 @@ export function ChatPanel({
 
   return (
     <div className="flex flex-col h-full">
-      <ChatHeader
-        isVersionPaneOpen={isVersionPaneOpen}
-        isPreviewOpen={isPreviewOpen}
-        onTogglePreview={onTogglePreview}
-        onVersionClick={() => setIsVersionPaneOpen(!isVersionPaneOpen)}
-      />
+      <div className="sticky top-0 z-20 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+        <ChatHeader
+          isVersionPaneOpen={isVersionPaneOpen}
+          isPreviewOpen={isPreviewOpen}
+          onTogglePreview={onTogglePreview}
+          onVersionClick={() => setIsVersionPaneOpen(!isVersionPaneOpen)}
+        />
+      </div>
       <div className="flex flex-1 overflow-hidden">
         {!isVersionPaneOpen && (
           <div className="flex-1 flex flex-col min-w-0">
@@ -131,7 +133,9 @@ export function ChatPanel({
               ref={messagesContainerRef}
             />
             <ChatError error={error} onDismiss={() => setError(null)} />
-            <ChatInput chatId={chatId} />
+            <div className="sticky bottom-0 z-20 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t px-2 sm:px-4">
+              <ChatInput chatId={chatId} />
+            </div>
           </div>
         )}
         <VersionPane

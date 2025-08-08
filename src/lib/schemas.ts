@@ -34,6 +34,11 @@ const providers = [
   "openrouter",
   "ollama",
   "lmstudio",
+  // Newly supported first-class cloud providers
+  "groq",
+  "mistral",
+  "xai",
+  "deepseek",
 ] as const;
 
 export const cloudProviders = providers.filter(

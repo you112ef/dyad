@@ -167,7 +167,13 @@ export class WebIpcClient {
     this.writeChats(chats);
 
     return {
-      app,
+      app: {
+        id: app.id,
+        name: app.name,
+        path: app.path,
+        createdAt: app.createdAt.toISOString(),
+        updatedAt: app.updatedAt.toISOString(),
+      } as any,
       chatId,
     } as CreateAppResult;
   }
@@ -226,16 +232,37 @@ export class WebIpcClient {
     this.writeChats(chats);
     options.onUpdate(chat.messages);
 
-    // simulate assistant
-    setTimeout(() => {
-      const assistantMsgId = this.nextId("message");
-      const assistantText =
-        "This is a web demo running on Cloudflare Pages. Configure providers in Settings to enable real responses.";
-      chat.messages.push({ id: assistantMsgId, role: "assistant", content: assistantText });
-      this.writeChats(chats);
-      options.onUpdate(chat.messages);
-      options.onEnd({ chatId: options.chatId, updatedFiles: false });
-    }, 600);
+    // call serverless API for real response
+    (async () => {
+      try {
+        const settings = await this.getUserSettings();
+        const provider = settings.selectedModel?.provider || undefined;
+        const model = settings.selectedModel?.name || undefined;
+        const clientKey = provider ? settings?.providerSettings?.[provider]?.apiKey?.value : undefined;
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ prompt, provider, model, clientKey }),
+        });
+        const assistantMsgId = this.nextId("message");
+        if (!res.ok) {
+          const txt = await res.text();
+          chat.messages.push({ id: assistantMsgId, role: "assistant", content: `Error: ${txt}` });
+        } else {
+          const data = (await res.json()) as { content?: string; error?: string };
+          chat.messages.push({ id: assistantMsgId, role: "assistant", content: data.content || data.error || "" });
+        }
+        this.writeChats(chats);
+        options.onUpdate(chat.messages);
+        options.onEnd({ chatId: options.chatId, updatedFiles: false });
+      } catch (e: any) {
+        const assistantMsgId = this.nextId("message");
+        chat.messages.push({ id: assistantMsgId, role: "assistant", content: `Error: ${String(e?.message || e)}` });
+        this.writeChats(chats);
+        options.onUpdate(chat.messages);
+        options.onEnd({ chatId: options.chatId, updatedFiles: false });
+      }
+    })();
   }
 
   public cancelChatStream(_chatId: number): void {
@@ -443,23 +470,73 @@ export class WebIpcClient {
   }
 
   public async getLanguageModelProviders(): Promise<LanguageModelProvider[]> {
-    return [
-      { id: "openai", name: "OpenAI", type: "cloud" },
-      { id: "anthropic", name: "Anthropic", type: "cloud" },
-      { id: "google", name: "Google", type: "cloud" },
-    ] as any;
+    // Base providers available in web demo
+    const base: LanguageModelProvider[] = [
+      { id: "openai", name: "OpenAI", type: "cloud", hasFreeTier: false, websiteUrl: "https://platform.openai.com/api-keys" } as any,
+      { id: "anthropic", name: "Anthropic", type: "cloud", hasFreeTier: false, websiteUrl: "https://console.anthropic.com/settings/keys" } as any,
+      { id: "google", name: "Google", type: "cloud", hasFreeTier: true, websiteUrl: "https://aistudio.google.com/app/apikey" } as any,
+      { id: "openrouter", name: "OpenRouter", type: "cloud", hasFreeTier: true, websiteUrl: "https://openrouter.ai/settings/keys" } as any,
+      { id: "groq", name: "Groq", type: "cloud", hasFreeTier: true, websiteUrl: "https://console.groq.com/keys" } as any,
+      { id: "mistral", name: "Mistral", type: "cloud", hasFreeTier: true, websiteUrl: "https://console.mistral.ai/api-keys/" } as any,
+      { id: "xai", name: "xAI", type: "cloud", hasFreeTier: false, websiteUrl: "https://console.x.ai/" } as any,
+      { id: "deepseek", name: "DeepSeek", type: "cloud", hasFreeTier: true, websiteUrl: "https://platform.deepseek.com/" } as any,
+    ];
+
+    // Try to augment with providers exposed by the /api/providers endpoint (if running behind CF Pages)
+    try {
+      const res = await fetch("/api/providers");
+      if (res.ok) {
+        const apiProviders = (await res.json()) as LanguageModelProvider[];
+        const map = new Map<string, any>();
+        [...base, ...apiProviders].forEach((p) => map.set(p.id, p));
+        return Array.from(map.values());
+      }
+    } catch {}
+
+    return base;
   }
 
   public async getLanguageModels(_params: {
     providerId: string;
   }): Promise<LanguageModel[]> {
+    const providerId = _params.providerId;
+
+    // Attempt server-side fetch with optional client key (avoids CORS)
+    try {
+      const settings = await this.getUserSettings();
+      const clientKey = settings?.providerSettings?.[providerId]?.apiKey?.value;
+      const res = await fetch(`/api/models`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ providerId, clientKey }),
+      });
+      if (res.ok) {
+        const models = (await res.json()) as LanguageModel[];
+        if (Array.isArray(models) && models.length >= 0) return models;
+      }
+    } catch {}
+
+    // Fallback to GET without client key
+    try {
+      const res = await fetch(`/api/models?providerId=${encodeURIComponent(providerId)}`);
+      if (res.ok) {
+        const models = (await res.json()) as LanguageModel[];
+        return models;
+      }
+    } catch {}
     return [];
   }
 
   public async getLanguageModelsByProviders(): Promise<
     Record<string, LanguageModel[]>
   > {
-    return {};
+    const providers = await this.getLanguageModelProviders();
+    const record: Record<string, LanguageModel[]> = {};
+    for (const p of providers) {
+      if (p.type === "local") continue;
+      record[p.id] = await this.getLanguageModels({ providerId: p.id });
+    }
+    return record;
   }
 
   public async createCustomLanguageModelProvider(_args: {
