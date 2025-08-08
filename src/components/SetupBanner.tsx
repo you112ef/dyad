@@ -274,6 +274,38 @@ export function SetupBanner() {
                   <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                 </div>
               </div>
+
+              {/* Quick integrations */}
+              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  className="justify-start"
+                  onClick={() => IpcClient.getInstance().openExternalUrl("https://github.com/dyad-sh/dyad#github-integration")}
+                >
+                  GitHub – Connect repo
+                </Button>
+                <Button
+                  variant="outline"
+                  className="justify-start"
+                  onClick={() => IpcClient.getInstance().openExternalUrl("https://www.dyad.sh/docs/integrations/supabase")}
+                >
+                  Supabase – Setup keys
+                </Button>
+                <Button
+                  variant="outline"
+                  className="justify-start"
+                  onClick={() => IpcClient.getInstance().openExternalUrl("http://localhost:1234")}
+                >
+                  LM Studio – Open local UI
+                </Button>
+                <Button
+                  variant="outline"
+                  className="justify-start"
+                  onClick={() => IpcClient.getInstance().openExternalUrl("http://localhost:11434")}
+                >
+                  Ollama – Open API UI
+                </Button>
+              </div>
             </AccordionContent>
           </AccordionItem>
         </Accordion>

@@ -39,55 +39,27 @@ vi.mock("../paths/paths", () => ({
   }),
 }));
 
-// DB mocks bound via closures so we can control return values without requiring the module
-let chatsFindFirstMock = vi.fn();
-let updateSetMock = vi.fn().mockReturnThis();
-let updateWhereMock = vi.fn().mockResolvedValue(undefined);
-
-vi.mock("../db", () => ({
-  db: {
-    query: {
-      chats: {
-        findFirst: (...args: any[]) => chatsFindFirstMock(...args),
-      },
-    },
-    update: () => {
-      const updateChain = {
-        set: (...a: any[]) => {
-          updateSetMock(...a);
-          return updateChain;
-        },
-        where: (...a: any[]) => updateWhereMock(...a),
-      } as any;
-      return updateChain;
+// Shared DB mock so both modules resolve to the same object
+const updateChainShared: any = {
+  set: (..._a: any[]) => updateChainShared,
+  where: (..._a: any[]) => Promise.resolve(undefined),
+};
+const dbShared: any = {
+  query: {
+    chats: {
+      findFirst: vi.fn(),
     },
   },
-}));
+  update: () => updateChainShared,
+};
 
-vi.mock("../../db", () => ({
-  db: {
-    query: {
-      chats: {
-        findFirst: (...args: any[]) => chatsFindFirstMock(...args),
-      },
-    },
-    update: () => {
-      const updateChain = {
-        set: (...a: any[]) => {
-          updateSetMock(...a);
-          return updateChain;
-        },
-        where: (...a: any[]) => updateWhereMock(...a),
-      } as any;
-      return updateChain;
-    },
-  },
-}));
+vi.mock("../db", () => ({ db: dbShared }));
+vi.mock("../../db", () => ({ db: dbShared }));
 
 beforeEach(() => {
   // Reset mocks
   vi.clearAllMocks();
-  chatsFindFirstMock = vi.fn().mockResolvedValue({
+  dbShared.query.chats.findFirst = vi.fn().mockResolvedValue({
     id: 1,
     appId: 1,
     title: "Test Chat",
@@ -101,8 +73,8 @@ beforeEach(() => {
     },
     messages: [],
   } as any);
-  updateSetMock = vi.fn().mockReturnThis();
-  updateWhereMock = vi.fn().mockResolvedValue(undefined);
+  updateChainShared.set = vi.fn().mockReturnValue(updateChainShared);
+  updateChainShared.where = vi.fn().mockResolvedValue(undefined);
 });
 
 describe("getDyadAddDependencyTags", () => {
@@ -555,7 +527,7 @@ describe("processFullResponse", () => {
     vi.clearAllMocks();
 
     // Mock db query response
-    chatsFindFirstMock.mockResolvedValue({
+    (dbShared.query.chats.findFirst as any).mockResolvedValue({
       id: 1,
       appId: 1,
       title: "Test Chat",
