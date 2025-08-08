@@ -39,24 +39,56 @@ vi.mock("../paths/paths", () => ({
   }),
 }));
 
-// Mock db
-vi.mock("../db/index", () => {
+vi.mock("../db", () => {
   const updateChain = {
     set: vi.fn().mockReturnThis(),
     where: vi.fn().mockResolvedValue(undefined),
   } as any;
-  return {
-    db: {
-      query: {
-        chats: {
-          findFirst: vi.fn(),
-        },
+  const dbMockLocal = {
+    query: {
+      chats: {
+        findFirst: vi.fn(),
       },
-      update: vi.fn(() => updateChain),
     },
-  };
+    update: vi.fn(() => updateChain),
+  } as any;
+  return { db: dbMockLocal };
 });
-// No beforeEach require; the vi.mock above provides the db shape
+vi.mock("../../db", () => {
+  const updateChain = {
+    set: vi.fn().mockReturnThis(),
+    where: vi.fn().mockResolvedValue(undefined),
+  } as any;
+  const dbMockLocal = {
+    query: {
+      chats: {
+        findFirst: vi.fn(),
+      },
+    },
+    update: vi.fn(() => updateChain),
+  } as any;
+  return { db: dbMockLocal };
+});
+
+beforeEach(() => {
+  // Reset mocks
+  vi.clearAllMocks();
+  const mockedDb = require("../../db").db;
+  mockedDb.query.chats.findFirst = vi.fn().mockResolvedValue({
+    id: 1,
+    appId: 1,
+    title: "Test Chat",
+    createdAt: new Date(),
+    app: {
+      id: 1,
+      name: "Mock App",
+      path: "mock-app-path",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    messages: [],
+  } as any);
+});
 
 describe("getDyadAddDependencyTags", () => {
   it("should return an empty array when no dyad-add-dependency tags are found", () => {
