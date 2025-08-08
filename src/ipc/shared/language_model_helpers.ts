@@ -104,6 +104,76 @@ export const MODEL_OPTIONS: Record<string, ModelOption[]> = {
       contextWindow: 128_000,
     },
   ],
+  groq: [
+    {
+      name: "llama-3.1-70b-versatile",
+      displayName: "Llama 3.1 70B (Groq)",
+      description: "Fast inference on Groq hardware",
+      contextWindow: 128_000,
+    },
+    {
+      name: "llama-3.1-8b-instant",
+      displayName: "Llama 3.1 8B (Groq)",
+      description: "Lower cost, fast responses",
+      contextWindow: 128_000,
+    },
+    {
+      name: "mixtral-8x7b-32768",
+      displayName: "Mixtral 8x7B 32k (Groq)",
+      description: "Mixture of Experts with 32k context",
+      contextWindow: 32_768,
+    },
+  ],
+  mistral: [
+    {
+      name: "mistral-large-latest",
+      displayName: "Mistral Large",
+      description: "General purpose model by Mistral",
+      contextWindow: 128_000,
+      supportsTurboEdits: true,
+    },
+    {
+      name: "mistral-small-latest",
+      displayName: "Mistral Small",
+      description: "Lightweight and efficient",
+      contextWindow: 32_000,
+    },
+    {
+      name: "codestral-latest",
+      displayName: "Codestral",
+      description: "Mistral's code generation model",
+      contextWindow: 32_000,
+    },
+  ],
+  xai: [
+    {
+      name: "grok-2-latest",
+      displayName: "Grok 2",
+      description: "xAI's latest Grok model",
+      contextWindow: 128_000,
+      supportsTurboEdits: true,
+    },
+    {
+      name: "grok-2-mini",
+      displayName: "Grok 2 Mini",
+      description: "Faster, budget-friendly Grok variant",
+      contextWindow: 64_000,
+    },
+  ],
+  deepseek: [
+    {
+      name: "deepseek-chat",
+      displayName: "DeepSeek Chat",
+      description: "General chat model",
+      contextWindow: 128_000,
+    },
+    {
+      name: "deepseek-reasoner",
+      displayName: "DeepSeek Reasoner",
+      description: "Reasoning-focused model",
+      contextWindow: 128_000,
+    },
+  ],
   auto: [
     {
       name: "auto",

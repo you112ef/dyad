@@ -243,6 +243,24 @@ function getRegularModelClient(
         backupModelClients: [],
       };
     }
+    case "groq":
+    case "mistral":
+    case "xai":
+    case "deepseek": {
+      // Treat as OpenAI-compatible providers when configured via custom/builtin cloud entry
+      const provider = createOpenAICompatible({
+        name: providerId,
+        baseURL: providerConfig.apiBaseUrl,
+        apiKey,
+      });
+      return {
+        modelClient: {
+          model: provider(model.name),
+          builtinProviderId: providerId,
+        },
+        backupModelClients: [],
+      };
+    }
     case "ollama": {
       // Ollama typically runs locally and doesn't require an API key in the same way
       const provider = createOllama({
