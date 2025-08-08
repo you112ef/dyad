@@ -31,3 +31,14 @@ If you're interested in contributing to dyad, please read our [contributing](./C
 - SPA routing is enabled via `public/_redirects`
 
 Electron features are stubbed in the browser. Chat runs as a demo using localStorage.
+
+## Automatic deploy (GitHub Actions)
+
+- Workflow: `.github/workflows/deploy-cloudflare-pages.yml`
+- Required repo secrets:
+  - `CF_API_TOKEN` (Pages write token)
+  - `CF_ACCOUNT_ID`
+  - `CF_PAGES_PROJECT_NAME`
+- Optional environment variables in Cloudflare Pages:
+  - `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, `OPENROUTER_API_KEY`
+  - KV binding `SETTINGS_KV` for settings persistence
