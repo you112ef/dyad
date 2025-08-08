@@ -26,6 +26,7 @@ export const MODEL_OPTIONS: Record<string, ModelOption[]> = {
       maxOutputTokens: 32_768,
       contextWindow: 1_047_576,
       supportsTurboEdits: true,
+      tag: "General",
     },
     // https://platform.openai.com/docs/models/gpt-4.1-mini
     {
@@ -34,6 +35,22 @@ export const MODEL_OPTIONS: Record<string, ModelOption[]> = {
       description: "OpenAI's lightweight, but intelligent model",
       maxOutputTokens: 32_768,
       contextWindow: 1_047_576,
+      tag: "Mini",
+    },
+    // omni
+    {
+      name: "gpt-4o",
+      displayName: "GPT-4o (Omni)",
+      description: "Multimodal, fast, and capable",
+      contextWindow: 128_000,
+      tag: "Omni",
+    },
+    {
+      name: "gpt-4o-mini",
+      displayName: "GPT-4o Mini",
+      description: "Budget-friendly Omni",
+      contextWindow: 128_000,
+      tag: "Omni/Mini",
     },
     // https://platform.openai.com/docs/models/o3-mini
     {
@@ -42,6 +59,7 @@ export const MODEL_OPTIONS: Record<string, ModelOption[]> = {
       description: "Reasoning model",
       maxOutputTokens: 100_000,
       contextWindow: 200_000,
+      tag: "Reasoning",
     },
   ],
   // https://docs.anthropic.com/en/docs/about-claude/models/all-models#model-comparison-table
@@ -53,6 +71,7 @@ export const MODEL_OPTIONS: Record<string, ModelOption[]> = {
       maxOutputTokens: 64_000,
       contextWindow: 200_000,
       supportsTurboEdits: true,
+      tag: "General",
     },
     {
       name: "claude-3-5-sonnet-20241022",
@@ -61,6 +80,7 @@ export const MODEL_OPTIONS: Record<string, ModelOption[]> = {
       maxOutputTokens: 8_000,
       contextWindow: 200_000,
       supportsTurboEdits: true,
+      tag: "General",
     },
     {
       name: "claude-3-5-haiku-20241022",
@@ -68,6 +88,7 @@ export const MODEL_OPTIONS: Record<string, ModelOption[]> = {
       description: "Lightweight coder",
       maxOutputTokens: 8_000,
       contextWindow: 200_000,
+      tag: "Mini",
     },
   ],
   google: [
@@ -81,6 +102,7 @@ export const MODEL_OPTIONS: Record<string, ModelOption[]> = {
       // Gemini context window = input token + output token
       contextWindow: 1_048_576,
       supportsTurboEdits: true,
+      tag: "Pro",
     },
     // https://ai.google.dev/gemini-api/docs/models#gemini-2.5-flash-preview
     {
@@ -92,6 +114,7 @@ export const MODEL_OPTIONS: Record<string, ModelOption[]> = {
       maxOutputTokens: 65_536 - 1,
       // Gemini context window = input token + output token
       contextWindow: 1_048_576,
+      tag: "Flash",
     },
   ],
   openrouter: [
@@ -102,6 +125,21 @@ export const MODEL_OPTIONS: Record<string, ModelOption[]> = {
       description: "Use for free (data may be used for training)",
       maxOutputTokens: 32_000,
       contextWindow: 128_000,
+      tag: "Free",
+    },
+    {
+      name: "deepseek/deepseek-r1:free",
+      displayName: "DeepSeek R1 (free)",
+      description: "Reasoning, free tier",
+      contextWindow: 128_000,
+      tag: "Reasoning/Free",
+    },
+    {
+      name: "qwen/qwen-2.5-coder-32b-instruct:free",
+      displayName: "Qwen 2.5 Coder 32B (free)",
+      description: "Coding, free tier",
+      contextWindow: 128_000,
+      tag: "Coding/Free",
     },
   ],
   groq: [
@@ -110,18 +148,28 @@ export const MODEL_OPTIONS: Record<string, ModelOption[]> = {
       displayName: "Llama 3.1 70B (Groq)",
       description: "Fast inference on Groq hardware",
       contextWindow: 128_000,
+      tag: "General",
     },
     {
       name: "llama-3.1-8b-instant",
       displayName: "Llama 3.1 8B (Groq)",
       description: "Lower cost, fast responses",
       contextWindow: 128_000,
+      tag: "Mini",
     },
     {
       name: "mixtral-8x7b-32768",
       displayName: "Mixtral 8x7B 32k (Groq)",
       description: "Mixture of Experts with 32k context",
       contextWindow: 32_768,
+      tag: "General",
+    },
+    {
+      name: "gemma2-9b-it",
+      displayName: "Gemma 2 9B (Groq)",
+      description: "Efficient instruction-tuned",
+      contextWindow: 32_768,
+      tag: "Mini",
     },
   ],
   mistral: [
@@ -131,18 +179,28 @@ export const MODEL_OPTIONS: Record<string, ModelOption[]> = {
       description: "General purpose model by Mistral",
       contextWindow: 128_000,
       supportsTurboEdits: true,
+      tag: "General",
     },
     {
       name: "mistral-small-latest",
       displayName: "Mistral Small",
       description: "Lightweight and efficient",
       contextWindow: 32_000,
+      tag: "Mini",
     },
     {
       name: "codestral-latest",
       displayName: "Codestral",
       description: "Mistral's code generation model",
       contextWindow: 32_000,
+      tag: "Coding",
+    },
+    {
+      name: "ministral-8b-latest",
+      displayName: "Ministral 8B",
+      description: "Compact, capable",
+      contextWindow: 32_000,
+      tag: "Mini",
     },
   ],
   xai: [
@@ -152,12 +210,14 @@ export const MODEL_OPTIONS: Record<string, ModelOption[]> = {
       description: "xAI's latest Grok model",
       contextWindow: 128_000,
       supportsTurboEdits: true,
+      tag: "General",
     },
     {
       name: "grok-2-mini",
       displayName: "Grok 2 Mini",
       description: "Faster, budget-friendly Grok variant",
       contextWindow: 64_000,
+      tag: "Mini",
     },
   ],
   deepseek: [
@@ -166,12 +226,21 @@ export const MODEL_OPTIONS: Record<string, ModelOption[]> = {
       displayName: "DeepSeek Chat",
       description: "General chat model",
       contextWindow: 128_000,
+      tag: "General",
     },
     {
       name: "deepseek-reasoner",
       displayName: "DeepSeek Reasoner",
       description: "Reasoning-focused model",
       contextWindow: 128_000,
+      tag: "Reasoning",
+    },
+    {
+      name: "deepseek-coder",
+      displayName: "DeepSeek Coder",
+      description: "Code-oriented model",
+      contextWindow: 128_000,
+      tag: "Coding",
     },
   ],
   auto: [
