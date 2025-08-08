@@ -19,6 +19,10 @@ export const onRequest: PagesFunction = async ({ request, env }) => {
       (env as any).ANTHROPIC_API_KEY ? "anthropic" : undefined,
       (env as any).GEMINI_API_KEY ? "google" : undefined,
       (env as any).OPENROUTER_API_KEY ? "openrouter" : undefined,
+      (env as any).GROQ_API_KEY ? "groq" : undefined,
+      (env as any).MISTRAL_API_KEY ? "mistral" : undefined,
+      (env as any).XAI_API_KEY ? "xai" : undefined,
+      (env as any).DEEPSEEK_API_KEY ? "deepseek" : undefined,
     ].filter(Boolean) as string[];
 
     if (candidates.length === 0) {
@@ -152,6 +156,130 @@ export const onRequest: PagesFunction = async ({ request, env }) => {
         }
         const data: any = await res.json();
         const content = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+        return new Response(JSON.stringify({ provider: chosen, content }), {
+          headers: { "content-type": "application/json" },
+        });
+      }
+      case "groq": {
+        const apiKey = (env as any).GROQ_API_KEY as string;
+        const endpoint = "https://api.groq.com/openai/v1/chat/completions";
+        const body = {
+          model: model || "llama-3.1-8b-instant",
+          messages: [
+            { role: "system", content: "You are a helpful coding assistant." },
+            { role: "user", content: prompt },
+          ],
+        };
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) {
+          const txt = await res.text();
+          return new Response(
+            JSON.stringify({ error: `Groq error: ${txt}` }),
+            { status: 500, headers: { "content-type": "application/json" } },
+          );
+        }
+        const data: any = await res.json();
+        const content = data.choices?.[0]?.message?.content ?? "";
+        return new Response(JSON.stringify({ provider: chosen, content }), {
+          headers: { "content-type": "application/json" },
+        });
+      }
+      case "mistral": {
+        const apiKey = (env as any).MISTRAL_API_KEY as string;
+        const endpoint = "https://api.mistral.ai/v1/chat/completions";
+        const body = {
+          model: model || "mistral-small-latest",
+          messages: [
+            { role: "system", content: "You are a helpful coding assistant." },
+            { role: "user", content: prompt },
+          ],
+        };
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) {
+          const txt = await res.text();
+          return new Response(
+            JSON.stringify({ error: `Mistral error: ${txt}` }),
+            { status: 500, headers: { "content-type": "application/json" } },
+          );
+        }
+        const data: any = await res.json();
+        const content = data.choices?.[0]?.message?.content ?? "";
+        return new Response(JSON.stringify({ provider: chosen, content }), {
+          headers: { "content-type": "application/json" },
+        });
+      }
+      case "xai": {
+        const apiKey = (env as any).XAI_API_KEY as string;
+        const endpoint = "https://api.x.ai/v1/chat/completions";
+        const body = {
+          model: model || "grok-2-mini",
+          messages: [
+            { role: "system", content: "You are a helpful coding assistant." },
+            { role: "user", content: prompt },
+          ],
+        };
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) {
+          const txt = await res.text();
+          return new Response(
+            JSON.stringify({ error: `xAI error: ${txt}` }),
+            { status: 500, headers: { "content-type": "application/json" } },
+          );
+        }
+        const data: any = await res.json();
+        const content = data.choices?.[0]?.message?.content ?? "";
+        return new Response(JSON.stringify({ provider: chosen, content }), {
+          headers: { "content-type": "application/json" },
+        });
+      }
+      case "deepseek": {
+        const apiKey = (env as any).DEEPSEEK_API_KEY as string;
+        const endpoint = "https://api.deepseek.com/chat/completions";
+        const body = {
+          model: model || "deepseek-chat",
+          messages: [
+            { role: "system", content: "You are a helpful coding assistant." },
+            { role: "user", content: prompt },
+          ],
+        };
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) {
+          const txt = await res.text();
+          return new Response(
+            JSON.stringify({ error: `DeepSeek error: ${txt}` }),
+            { status: 500, headers: { "content-type": "application/json" } },
+          );
+        }
+        const data: any = await res.json();
+        const content = data.choices?.[0]?.message?.content ?? "";
         return new Response(JSON.stringify({ provider: chosen, content }), {
           headers: { "content-type": "application/json" },
         });
