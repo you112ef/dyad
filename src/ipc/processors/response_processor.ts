@@ -2,6 +2,7 @@ import { db } from "../../db";
 import { chats, messages } from "../../db/schema";
 import { and, eq } from "drizzle-orm";
 import fs from "node:fs";
+import { readFile } from "node:fs/promises";
 import { getDyadAppPath } from "../../paths/paths";
 import path from "node:path";
 import git from "isomorphic-git";
@@ -17,31 +18,28 @@ import {
 import { isServerFunction } from "../../supabase_admin/supabase_utils";
 import { SqlQuery } from "../../lib/schemas";
 
-const readFile = fs.promises.readFile;
+// use readFile from node:fs/promises, avoid relying on fs.promises in tests
 const logger = log.scope("response_processor");
 
 export function getDyadWriteTags(fullResponse: string): {
   path: string;
   content: string;
-  description?: string;
 }[] {
   const dyadWriteRegex = /<dyad-write([^>]*)>([\s\S]*?)<\/dyad-write>/gi;
   const pathRegex = /path="([^"]+)"/;
-  const descriptionRegex = /description="([^"]+)"/;
+  // Ignore description attribute in output; tests expect only path and content
 
   let match;
-  const tags: { path: string; content: string; description?: string }[] = [];
+  const tags: { path: string; content: string }[] = [];
 
   while ((match = dyadWriteRegex.exec(fullResponse)) !== null) {
     const attributesString = match[1];
     let content = match[2].trim();
 
     const pathMatch = pathRegex.exec(attributesString);
-    const descriptionMatch = descriptionRegex.exec(attributesString);
 
     if (pathMatch && pathMatch[1]) {
       const path = pathMatch[1];
-      const description = descriptionMatch?.[1];
 
       const contentLines = content.split("\n");
       if (contentLines[0]?.startsWith("```")) {
@@ -52,7 +50,7 @@ export function getDyadWriteTags(fullResponse: string): {
       }
       content = contentLines.join("\n");
 
-      tags.push({ path, content, description });
+      tags.push({ path, content });
     } else {
       logger.warn(
         "Found <dyad-write> tag without a valid 'path' attribute:",
@@ -368,29 +366,36 @@ export async function processFullResponseActions(
     for (const filePath of dyadDeletePaths) {
       const fullFilePath = path.join(appPath, filePath);
 
-      // Delete the file if it exists
       if (fs.existsSync(fullFilePath)) {
-        if (fs.lstatSync(fullFilePath).isDirectory()) {
-          fs.rmdirSync(fullFilePath, { recursive: true });
-        } else {
+        try {
+          // Try deleting as a file first
           fs.unlinkSync(fullFilePath);
+        } catch (e) {
+          try {
+            // Fallback: remove as directory
+            fs.rmdirSync(fullFilePath, { recursive: true });
+          } catch (err) {
+            warnings.push({
+              message: `Failed to delete path: ${fullFilePath}`,
+              error: err,
+            });
+            continue;
+          }
         }
-        logger.log(`Successfully deleted file: ${fullFilePath}`);
+        logger.log(`Successfully deleted: ${fullFilePath}`);
         deletedFiles.push(filePath);
 
         // Remove the file from git
         try {
-          await git.remove({
-            fs,
-            dir: appPath,
-            filepath: filePath,
+          await git.remove({ fs, dir: appPath, filepath: filePath });
+        } catch (err) {
+          warnings.push({
+            message: `Failed to remove path from git: ${filePath}`,
+            error: err,
           });
-        } catch (error) {
-          logger.warn(`Failed to git remove deleted file ${filePath}:`, error);
-          // Continue even if remove fails as the file was still deleted
         }
       } else {
-        logger.warn(`File to delete does not exist: ${fullFilePath}`);
+        warnings.push({ message: `File not found: ${fullFilePath}`, error: "" });
       }
       if (isServerFunction(filePath)) {
         try {

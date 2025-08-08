@@ -40,15 +40,23 @@ vi.mock("../paths/paths", () => ({
 }));
 
 // Mock db
-vi.mock("../db", () => ({
-  db: {
-    query: {
-      chats: {
-        findFirst: vi.fn(),
+vi.mock("../db/index", () => {
+  const updateChain = {
+    set: vi.fn().mockReturnThis(),
+    where: vi.fn().mockResolvedValue(undefined),
+  } as any;
+  return {
+    db: {
+      query: {
+        chats: {
+          findFirst: vi.fn(),
+        },
       },
+      update: vi.fn(() => updateChain),
     },
-  },
-}));
+  };
+});
+// No beforeEach require; the vi.mock above provides the db shape
 
 describe("getDyadAddDependencyTags", () => {
   it("should return an empty array when no dyad-add-dependency tags are found", () => {
