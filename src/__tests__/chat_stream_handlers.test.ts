@@ -537,7 +537,7 @@ describe("processFullResponse", () => {
     vi.clearAllMocks();
 
     // Mock db query response
-    vi.mocked(db.query.chats.findFirst).mockResolvedValue({
+    chatsFindFirstMock.mockResolvedValue({
       id: 1,
       appId: 1,
       title: "Test Chat",
