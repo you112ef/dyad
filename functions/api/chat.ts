@@ -84,7 +84,7 @@ export const onRequest: PagesFunction = async ({ request, env }) => {
           });
         const endpoint = "https://openrouter.ai/api/v1/chat/completions";
         const body = {
-          model: model || "deepseek/deepseek-chat-v3-0324:free",
+          model: model || "deepseek/deepseek-chat-v3-0324",
           messages: [
             { role: "system", content: "You are a helpful coding assistant." },
             { role: "user", content: prompt },

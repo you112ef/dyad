@@ -131,10 +131,9 @@ export async function getModelClient(
 
       logger.info(`Using Dyad Pro API key. engine_enabled=${isEngineEnabled}`);
       // Do not use free variant (for openrouter).
-      const modelName = model.name.split(":free")[0];
       const autoModelClient = {
         model: provider(
-          `${providerConfig.gatewayPrefix || ""}${modelName}`,
+          `${providerConfig.gatewayPrefix || ""}${model.name}`,
           engineProMode
             ? {
                 files,
