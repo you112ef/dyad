@@ -119,6 +119,10 @@ export const PROVIDER_TO_ENV_VAR: Record<string, string> = {
   anthropic: "ANTHROPIC_API_KEY",
   google: "GEMINI_API_KEY",
   openrouter: "OPENROUTER_API_KEY",
+  groq: "GROQ_API_KEY",
+  mistral: "MISTRAL_API_KEY",
+  xai: "XAI_API_KEY",
+  deepseek: "DEEPSEEK_API_KEY",
 };
 
 export const CLOUD_PROVIDERS: Record<
@@ -128,6 +132,7 @@ export const CLOUD_PROVIDERS: Record<
     hasFreeTier?: boolean;
     websiteUrl?: string;
     gatewayPrefix: string;
+    apiBaseUrl?: string;
   }
 > = {
   openai: {
@@ -153,6 +158,30 @@ export const CLOUD_PROVIDERS: Record<
     hasFreeTier: true,
     websiteUrl: "https://openrouter.ai/settings/keys",
     gatewayPrefix: "openrouter/",
+  },
+  groq: {
+    displayName: "Groq",
+    hasFreeTier: true,
+    websiteUrl: "https://console.groq.com/keys",
+    gatewayPrefix: "groq/",
+  },
+  mistral: {
+    displayName: "Mistral",
+    hasFreeTier: true,
+    websiteUrl: "https://console.mistral.ai/api-keys/",
+    gatewayPrefix: "mistral/",
+  },
+  xai: {
+    displayName: "xAI",
+    hasFreeTier: false,
+    websiteUrl: "https://console.x.ai/",
+    gatewayPrefix: "xai/",
+  },
+  deepseek: {
+    displayName: "DeepSeek",
+    hasFreeTier: true,
+    websiteUrl: "https://platform.deepseek.com/",
+    gatewayPrefix: "deepseek/",
   },
   auto: {
     displayName: "Dyad",
@@ -308,9 +337,7 @@ export async function getLanguageModels({
         type: "cloud",
       }));
     } else {
-      console.warn(
-        `Provider "${providerId}" is cloud type but not found in MODEL_OPTIONS.`,
-      );
+      // For new providers without hardcoded model options, return empty list (custom models can be added)
     }
   }
 

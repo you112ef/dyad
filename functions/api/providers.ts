@@ -5,6 +5,10 @@ export const onRequest: PagesFunction = async ({ env }) => {
     anthropic: "ANTHROPIC_API_KEY",
     google: "GEMINI_API_KEY",
     openrouter: "OPENROUTER_API_KEY",
+    groq: "GROQ_API_KEY",
+    mistral: "MISTRAL_API_KEY",
+    xai: "XAI_API_KEY",
+    deepseek: "DEEPSEEK_API_KEY",
   };
 
   // Cloud provider metadata to match the application's expectations
@@ -36,6 +40,26 @@ export const onRequest: PagesFunction = async ({ env }) => {
       displayName: "OpenRouter",
       hasFreeTier: true,
       websiteUrl: "https://openrouter.ai/settings/keys",
+    },
+    groq: {
+      displayName: "Groq",
+      hasFreeTier: true,
+      websiteUrl: "https://console.groq.com/keys",
+    },
+    mistral: {
+      displayName: "Mistral",
+      hasFreeTier: true,
+      websiteUrl: "https://console.mistral.ai/api-keys/",
+    },
+    xai: {
+      displayName: "xAI",
+      hasFreeTier: false,
+      websiteUrl: "https://console.x.ai/",
+    },
+    deepseek: {
+      displayName: "DeepSeek",
+      hasFreeTier: true,
+      websiteUrl: "https://platform.deepseek.com/",
     },
   };
 
