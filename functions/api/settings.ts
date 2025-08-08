@@ -1,6 +1,6 @@
 let memory: Record<string, any> = {};
 
-export const onRequest: PagesFunction = async ({ request, env, data }) => {
+export const onRequest: PagesFunction = async ({ request, env, data: _data }) => {
   const key = "settings";
   const method = request.method.toUpperCase();
   const kv = (env as any).SETTINGS_KV as KVNamespace | undefined;

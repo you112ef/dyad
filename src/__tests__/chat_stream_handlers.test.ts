@@ -39,16 +39,53 @@ vi.mock("../paths/paths", () => ({
   }),
 }));
 
-// Mock db
+// DB mocks bound via closures so we can control return values without requiring the module
+let chatsFindFirstMock = vi.fn();
+let updateSetMock = vi.fn().mockReturnThis();
+let updateWhereMock = vi.fn().mockResolvedValue(undefined);
+
 vi.mock("../db", () => ({
   db: {
     query: {
       chats: {
-        findFirst: vi.fn(),
+        findFirst: (...args: any[]) => chatsFindFirstMock(...args),
       },
     },
+    update: () => ({ set: (...a: any[]) => updateSetMock(...a), where: (...a: any[]) => updateWhereMock(...a) }),
   },
 }));
+
+vi.mock("../../db", () => ({
+  db: {
+    query: {
+      chats: {
+        findFirst: (...args: any[]) => chatsFindFirstMock(...args),
+      },
+    },
+    update: () => ({ set: (...a: any[]) => updateSetMock(...a), where: (...a: any[]) => updateWhereMock(...a) }),
+  },
+}));
+
+beforeEach(() => {
+  // Reset mocks
+  vi.clearAllMocks();
+  chatsFindFirstMock = vi.fn().mockResolvedValue({
+    id: 1,
+    appId: 1,
+    title: "Test Chat",
+    createdAt: new Date(),
+    app: {
+      id: 1,
+      name: "Mock App",
+      path: "mock-app-path",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    messages: [],
+  } as any);
+  updateSetMock = vi.fn().mockReturnThis();
+  updateWhereMock = vi.fn().mockResolvedValue(undefined);
+});
 
 describe("getDyadAddDependencyTags", () => {
   it("should return an empty array when no dyad-add-dependency tags are found", () => {
@@ -500,7 +537,7 @@ describe("processFullResponse", () => {
     vi.clearAllMocks();
 
     // Mock db query response
-    vi.mocked(db.query.chats.findFirst).mockResolvedValue({
+    chatsFindFirstMock.mockResolvedValue({
       id: 1,
       appId: 1,
       title: "Test Chat",
