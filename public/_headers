@@ -1,0 +1,8 @@
+/*
+  X-Robots-Tag: all
+
+/*
+  Service-Worker-Allowed: /
+
+/*
+  Cache-Control: public, max-age=0, must-revalidate

@@ -23,7 +23,11 @@ export const TitleBar = () => {
   const [showWindowControls, setShowWindowControls] = useState(false);
 
   useEffect(() => {
-    // Check if we're running on Windows
+    const isWeb = typeof window !== "undefined" && !(window as any)?.electron;
+    if (isWeb) {
+      setShowWindowControls(false);
+      return;
+    }
     const checkPlatform = async () => {
       try {
         const platform = await IpcClient.getInstance().getSystemPlatform();
@@ -32,7 +36,6 @@ export const TitleBar = () => {
         console.error("Failed to get platform info:", error);
       }
     };
-
     checkPlatform();
   }, []);
 
@@ -68,9 +71,13 @@ export const TitleBar = () => {
 
   return (
     <>
-      <div className="@container z-11 w-full h-11 bg-(--sidebar) absolute top-0 left-0 app-region-drag flex items-center">
+      <div className="@container z-11 w-full h-10 sm:h-11 bg-(--sidebar) absolute top-0 left-0 app-region-drag flex items-center">
         <div className="pl-20"></div>
-        <img src={logo} alt="Dyad Logo" className="w-6 h-6 mr-2" />
+        <img
+          src={logo}
+          alt="Dyad Logo"
+          className="w-5 h-5 sm:w-6 sm:h-6 mr-2"
+        />
         <Button
           variant="outline"
           size="sm"

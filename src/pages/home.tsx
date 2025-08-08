@@ -143,7 +143,7 @@ export default function HomePage() {
   // Loading overlay for app creation
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center max-w-3xl m-auto p-8">
+      <div className="flex flex-col items-center justify-center w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="w-full flex flex-col items-center">
           {/* Loading Spinner */}
           <div className="relative w-24 h-24 mb-8">
@@ -164,21 +164,21 @@ export default function HomePage() {
 
   // Main Home Page Content
   return (
-    <div className="flex flex-col items-center justify-center max-w-3xl m-auto p-8">
+    <div className="flex flex-col items-center justify-center w-full max-w-3xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 gap-3">
       <SetupBanner />
 
       <div className="w-full">
         <ImportAppButton />
         <HomeChatInput onSubmit={handleSubmit} />
 
-        <div className="flex flex-col gap-4 mt-4">
-          <div className="flex flex-wrap gap-4 justify-center">
+        <div className="flex flex-col gap-3 sm:gap-4 mt-3 sm:mt-4">
+          <div className="flex flex-wrap gap-2 sm:gap-4 justify-center">
             {randomPrompts.map((item, index) => (
               <button
                 type="button"
                 key={index}
                 onClick={() => setInputValue(`Build me a ${item.label}`)}
-                className="flex items-center gap-3 px-4 py-2 rounded-xl border border-gray-200
+                className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl border border-gray-200
                            bg-white/50 backdrop-blur-sm
                            transition-all duration-200
                            hover:bg-white hover:shadow-md hover:border-gray-300
@@ -199,7 +199,7 @@ export default function HomePage() {
           <button
             type="button"
             onClick={() => setRandomPrompts(getRandomPrompts())}
-            className="self-center flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200
+            className="self-center flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl border border-gray-200
                        bg-white/50 backdrop-blur-sm
                        transition-all duration-200
                        hover:bg-white hover:shadow-md hover:border-gray-300

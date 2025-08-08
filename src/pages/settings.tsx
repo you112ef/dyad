@@ -15,6 +15,7 @@ import { useRouter } from "@tanstack/react-router";
 import { GitHubIntegration } from "@/components/GitHubIntegration";
 import { SupabaseIntegration } from "@/components/SupabaseIntegration";
 import { Switch } from "@/components/ui/switch";
+import { NodeSetupCard } from "@/components/NodeSetupCard";
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -42,7 +43,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen px-8 py-4">
+    <div className="min-h-screen px-4 sm:px-8 py-4">
       <div className="max-w-5xl mx-auto">
         <Button
           onClick={() => router.history.back()}
@@ -54,12 +55,12 @@ export default function SettingsPage() {
           Go Back
         </Button>
         <div className="flex justify-between mb-4">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
             Settings
           </h1>
 
           {/* App Version Section */}
-          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+          <div className="flex items-center text-xs sm:text-sm text-gray-500 dark:text-gray-400">
             <span className="mr-2 font-medium">App Version:</span>
             <span className="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-gray-800 dark:text-gray-200 font-mono">
               {appVersion ? appVersion : "-"}
@@ -68,8 +69,8 @@ export default function SettingsPage() {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">
               General Settings
             </h2>
 
@@ -85,7 +86,7 @@ export default function SettingsPage() {
                       key={option}
                       onClick={() => setTheme(option)}
                       className={`
-                        px-4 py-1.5 text-sm font-medium rounded-md
+                        px-3 sm:px-4 py-1.5 text-sm font-medium rounded-md
                         transition-all duration-200
                         ${
                           theme === option
@@ -113,13 +114,16 @@ export default function SettingsPage() {
             </div>
           </div>
 
+          {/* Node setup card (web users) */}
+          <NodeSetupCard />
+
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
             <ProviderSettingsGrid />
           </div>
 
           <div className="space-y-6">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-              <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6">
+              <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">
                 Telemetry
               </h2>
               <div className="space-y-2">
@@ -139,8 +143,8 @@ export default function SettingsPage() {
           </div>
 
           {/* Integrations Section */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">
               Integrations
             </h2>
             <div className="space-y-4">
@@ -150,8 +154,8 @@ export default function SettingsPage() {
           </div>
 
           {/* Experiments Section */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">
               Experiments
             </h2>
             <div className="space-y-4">
@@ -184,8 +188,8 @@ export default function SettingsPage() {
           </div>
 
           {/* Danger Zone */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-red-200 dark:border-red-800">
-            <h2 className="text-lg font-medium text-red-600 dark:text-red-400 mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 border border-red-200 dark:border-red-800">
+            <h2 className="text-lg font-medium text-red-600 dark:text-red-400 mb-3 sm:mb-4">
               Danger Zone
             </h2>
 

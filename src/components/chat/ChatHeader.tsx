@@ -161,12 +161,12 @@ export function ChatHeader({
         </div>
       )}
 
-      <div className="@container flex items-center justify-between py-1.5">
+      <div className="@container flex items-center justify-between py-1">
         <div className="flex items-center space-x-2">
           <Button
             onClick={handleNewChat}
             variant="ghost"
-            className="hidden @2xs:flex items-center justify-start gap-2 mx-2 py-3"
+            className="flex items-center justify-start gap-1.5 mx-1.5 sm:mx-2 py-2.5"
           >
             <PlusCircle size={16} />
             <span>New Chat</span>
@@ -174,7 +174,7 @@ export function ChatHeader({
           <Button
             onClick={onVersionClick}
             variant="ghost"
-            className="hidden @6xs:flex cursor-pointer items-center gap-1 text-sm px-2 py-1 rounded-md"
+            className="flex cursor-pointer items-center gap-1 text-xs sm:text-sm px-1.5 sm:px-2 py-1 rounded-md"
           >
             <History size={16} />
             {versionsLoading
