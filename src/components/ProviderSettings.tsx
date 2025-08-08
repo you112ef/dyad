@@ -105,6 +105,7 @@ export function ProviderSettingsGrid() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {providers
           ?.filter((p) => p.type !== "local")
+          .filter((p) => isProviderSetup(p.id))
           .map((provider: LanguageModelProvider) => {
             const isCustom = provider.type === "custom";
 
