@@ -2,9 +2,9 @@ name: Android CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [ main, master ]
   pull_request:
-    branches: [main, master]
+    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
@@ -18,12 +18,14 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: '17'
+          cache: gradle
 
       - name: Install Android SDK Commandline Tools
         uses: android-actions/setup-android@v3
 
       - name: Accept SDK Licenses and install platforms/build-tools
+        shell: bash
         run: |
           yes | sdkmanager --licenses
           sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
