@@ -11,10 +11,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: [
-        "icons/icon-192.png",
-        "icons/icon-512.png",
-      ],
+      includeAssets: ["icons/icon-192.png", "icons/icon-512.png"],
       manifest: {
         id: "/",
         name: "Dyad",
@@ -55,21 +52,33 @@ export default defineConfig({
             sizes: "512x512",
             type: "image/png",
             purpose: "any",
-          }
+          },
         ],
         shortcuts: [
           {
             name: "New Chat",
             short_name: "Chat",
             url: "/chat",
-            icons: [{ src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }]
+            icons: [
+              {
+                src: "/icons/icon-192.png",
+                sizes: "192x192",
+                type: "image/png",
+              },
+            ],
           },
           {
             name: "Settings",
             short_name: "Settings",
             url: "/settings",
-            icons: [{ src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }]
-          }
+            icons: [
+              {
+                src: "/icons/icon-192.png",
+                sizes: "192x192",
+                type: "image/png",
+              },
+            ],
+          },
         ],
       },
       workbox: {
@@ -90,7 +99,10 @@ export default defineConfig({
           {
             urlPattern: ({ request }) => request.destination === "image",
             handler: "CacheFirst",
-            options: { cacheName: "image-cache", expiration: { maxEntries: 100 } },
+            options: {
+              cacheName: "image-cache",
+              expiration: { maxEntries: 100 },
+            },
           },
           {
             urlPattern: /\/api\//,

@@ -226,16 +226,47 @@ export class WebIpcClient {
     this.writeChats(chats);
     options.onUpdate(chat.messages);
 
-    // simulate assistant
-    setTimeout(() => {
-      const assistantMsgId = this.nextId("message");
-      const assistantText =
-        "This is a web demo running on Cloudflare Pages. Configure providers in Settings to enable real responses.";
-      chat.messages.push({ id: assistantMsgId, role: "assistant", content: assistantText });
-      this.writeChats(chats);
-      options.onUpdate(chat.messages);
-      options.onEnd({ chatId: options.chatId, updatedFiles: false });
-    }, 600);
+    // try real providers via cloud function
+    fetch("/api/providers")
+      .then((r) => r.json())
+      .then(async (providers: any[]) => {
+        if (!Array.isArray(providers) || providers.length === 0) {
+          // fallback demo
+          const assistantMsgId = this.nextId("message");
+          const assistantText =
+            "This is a web demo running on Cloudflare Pages. Configure providers in Settings to enable real responses.";
+          chat.messages.push({
+            id: assistantMsgId,
+            role: "assistant",
+            content: assistantText,
+          });
+          this.writeChats(chats);
+          options.onUpdate(chat.messages);
+          options.onEnd({ chatId: options.chatId, updatedFiles: false });
+          return;
+        }
+        // pick first provider and call an edge endpoint that proxies to provider using env key
+        const body = { providerId: providers[0].id, prompt };
+        const resp = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (!resp.ok) throw new Error(`chat api ${resp.status}`);
+        const data = await resp.json();
+        const assistantMsgId = this.nextId("message");
+        chat.messages.push({
+          id: assistantMsgId,
+          role: "assistant",
+          content: data.text || "",
+        });
+        this.writeChats(chats);
+        options.onUpdate(chat.messages);
+        options.onEnd({ chatId: options.chatId, updatedFiles: false });
+      })
+      .catch((e) => {
+        options.onError(String(e));
+      });
   }
 
   public cancelChatStream(_chatId: number): void {
@@ -355,10 +386,7 @@ export class WebIpcClient {
     return null;
   }
 
-  public async approveProposal(_args: {
-    chatId: number;
-    messageId: number;
-  }) {
+  public async approveProposal(_args: { chatId: number; messageId: number }) {
     return {} as any;
   }
 
@@ -495,7 +523,9 @@ export class WebIpcClient {
     return { path: null, name: null };
   }
 
-  public async checkAiRules(_params: { path: string }): Promise<{ exists: boolean }> {
+  public async checkAiRules(_params: {
+    path: string;
+  }): Promise<{ exists: boolean }> {
     return { exists: false };
   }
 
@@ -504,7 +534,9 @@ export class WebIpcClient {
     return { appId: app.app.id, chatId: app.chatId };
   }
 
-  public async checkAppName(_params: { appName: string }): Promise<{ exists: boolean }> {
+  public async checkAppName(_params: {
+    appName: string;
+  }): Promise<{ exists: boolean }> {
     return { exists: false };
   }
 
