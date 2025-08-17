@@ -22,9 +22,17 @@ jobs:
       - name: Install Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Accept SDK Licenses and install platforms/build-tools
+      - name: Accept SDK Licenses (tolerate SIGPIPE) and install
+        shell: bash
         run: |
-          yes | sdkmanager --licenses
+          set +e
+          yes | sdkmanager --licenses >/dev/null 2>&1
+          status=$?
+          set -e
+          if [ $status -ne 0 ] && [ $status -ne 141 ]; then
+            echo "sdkmanager --licenses failed with status $status"
+            exit $status
+          fi
           sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
       - name: Prepare signing keystore (if provided)
