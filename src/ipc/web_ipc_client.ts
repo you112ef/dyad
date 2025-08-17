@@ -231,7 +231,11 @@ export class WebIpcClient {
       const assistantMsgId = this.nextId("message");
       const assistantText =
         "This is a web demo running on Cloudflare Pages. Configure providers in Settings to enable real responses.";
-      chat.messages.push({ id: assistantMsgId, role: "assistant", content: assistantText });
+      chat.messages.push({
+        id: assistantMsgId,
+        role: "assistant",
+        content: assistantText,
+      });
       this.writeChats(chats);
       options.onUpdate(chat.messages);
       options.onEnd({ chatId: options.chatId, updatedFiles: false });
@@ -355,10 +359,7 @@ export class WebIpcClient {
     return null;
   }
 
-  public async approveProposal(_args: {
-    chatId: number;
-    messageId: number;
-  }) {
+  public async approveProposal(_args: { chatId: number; messageId: number }) {
     return {} as any;
   }
 
@@ -495,7 +496,9 @@ export class WebIpcClient {
     return { path: null, name: null };
   }
 
-  public async checkAiRules(_params: { path: string }): Promise<{ exists: boolean }> {
+  public async checkAiRules(_params: {
+    path: string;
+  }): Promise<{ exists: boolean }> {
     return { exists: false };
   }
 
@@ -504,7 +507,9 @@ export class WebIpcClient {
     return { appId: app.app.id, chatId: app.chatId };
   }
 
-  public async checkAppName(_params: { appName: string }): Promise<{ exists: boolean }> {
+  public async checkAppName(_params: {
+    appName: string;
+  }): Promise<{ exists: boolean }> {
     return { exists: false };
   }
 

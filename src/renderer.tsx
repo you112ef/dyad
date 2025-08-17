@@ -14,7 +14,11 @@ import {
 import { showError } from "./lib/toast";
 
 // @ts-ignore
-console.log("Running in mode:", import.meta.env.MODE, typeof (window as any)?.electron === "undefined" ? "(web)" : "(electron)");
+console.log(
+  "Running in mode:",
+  import.meta.env.MODE,
+  typeof (window as any)?.electron === "undefined" ? "(web)" : "(electron)",
+);
 
 interface MyMeta extends Record<string, unknown> {
   showErrorToast: boolean;
