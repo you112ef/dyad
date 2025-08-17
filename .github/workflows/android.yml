@@ -1,0 +1,57 @@
+name: Android CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Android SDK Commandline Tools
+        uses: android-actions/setup-android@v3
+
+      - name: Accept SDK Licenses and install platforms/build-tools
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+
+      - name: Generate Gradle Wrapper if missing
+        working-directory: android-app
+        run: |
+          if [ ! -f ./gradlew ]; then
+            gradle wrapper --gradle-version 8.7
+            chmod +x ./gradlew
+          fi
+
+      - name: Build Debug
+        working-directory: android-app
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Build Release (unsigned)
+        working-directory: android-app
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: dyad-android-debug-apk
+          path: android-app/app/build/outputs/apk/debug/*.apk
+
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: dyad-android-release-apk
+          path: android-app/app/build/outputs/apk/release/*.apk

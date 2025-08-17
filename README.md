@@ -42,3 +42,14 @@ Electron features are stubbed in the browser. Chat runs as a demo using localSto
 - Optional environment variables in Cloudflare Pages:
   - `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, `OPENROUTER_API_KEY`
   - KV binding `SETTINGS_KV` for settings persistence
+
+## Android (DyadAndroid)
+
+يوجد مشروع أندرويد داخل `android-app/` يقوم بتشغيل Dyad داخل WebView مع تحسينات للشاشات الصغيرة (4–7 بوصة) خصوصًا 4–5 بوصة. للبناء محليًا:
+
+```bash
+cd android-app
+./gradlew assembleDebug
+```
+
+في GitHub Actions، الملف `.github/workflows/android.yml` يبني التطبيق تلقائيًا ويرفع ملفات APK كـ Artifacts. لتفعيل توقيع الإصدارات لاحقًا، أضف أسرار التوقيع وقم بتعديل خطوات البناء.
