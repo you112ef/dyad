@@ -14,7 +14,7 @@ import { GiftIcon, PlusIcon, MoreVertical, Trash2 } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { AlertTriangle } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 import {
   DropdownMenu,
@@ -34,11 +34,26 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { CreateCustomProviderDialog } from "./CreateCustomProviderDialog";
+import { Button } from "@/components/ui/button";
 
 export function ProviderSettingsGrid() {
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [providerToDelete, setProviderToDelete] = useState<string | null>(null);
+  const [providerId, setProviderId] = useState<string>("");
+  const [modelId, setModelId] = useState<string>("");
+  const modelsByProvider = useMemo(
+    () => ({
+      openai: ["gpt-4o-mini", "gpt-4o", "gpt-4.1-mini"],
+      anthropic: ["claude-3-5-sonnet-latest", "claude-3-haiku"],
+      google: ["gemini-1.5-flash-latest", "gemini-1.5-pro-latest"],
+      openrouter: [
+        "meta-llama/llama-3.1-405b-instruct",
+        "deepseek/deepseek-chat",
+      ],
+    }),
+    [],
+  );
 
   const {
     data: providers,
@@ -63,6 +78,21 @@ export function ProviderSettingsGrid() {
       setProviderToDelete(null);
       refetch();
     }
+  };
+
+  const handleTest = async () => {
+    if (!providerId || !modelId) return;
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ providerId, prompt: `ping via ${modelId}` }),
+    });
+    if (!res.ok) {
+      alert(`Provider test failed: ${res.status}`);
+      return;
+    }
+    const j = await res.json();
+    alert(j.text || "OK");
   };
 
   if (isLoading) {
@@ -102,6 +132,7 @@ export function ProviderSettingsGrid() {
     );
   }
 
+  const available = (providers || []).filter((p: any) => p.type !== "local");
   return (
     <div className="px-3 py-4 sm:p-6">
       <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">
@@ -220,6 +251,57 @@ export function ProviderSettingsGrid() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <div className="p-4 space-y-4">
+        <h2 className="text-xl font-bold">AI Providers</h2>
+        <div className="grid grid-cols-1 gap-4">
+          <Card className="border-border">
+            <CardHeader>
+              <CardTitle>Connect Provider</CardTitle>
+              <CardDescription>
+                اختر المزود والموديل. إذا كانت مفاتيح البيئة مضبوطة على Pages
+                سيعمل فورًا.
+              </CardDescription>
+              <div className="flex flex-col sm:flex-row gap-3 mt-3">
+                <select
+                  className="border rounded px-3 py-2 text-sm"
+                  value={providerId}
+                  onChange={(e) => {
+                    setProviderId(e.target.value);
+                    setModelId("");
+                  }}
+                >
+                  <option value="">اختر المزود…</option>
+                  {available.map((p: any) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="border rounded px-3 py-2 text-sm"
+                  value={modelId}
+                  onChange={(e) => setModelId(e.target.value)}
+                  disabled={!providerId}
+                >
+                  <option value="">اختر الموديل…</option>
+                  {(
+                    (providerId && (modelsByProvider as any)[providerId]) ||
+                    []
+                  ).map((m: string) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+                <Button onClick={handleTest} disabled={!providerId || !modelId}>
+                  اختبار الاتصال
+                </Button>
+              </div>
+            </CardHeader>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
