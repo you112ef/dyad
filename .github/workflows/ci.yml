@@ -2,34 +2,26 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
+    branches: ["main"]
   pull_request:
-    types: [opened, synchronize, reopened]
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-defaults:
-  run:
-    shell: bash
+    branches: ["main"]
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Initialize environment
+      - uses: actions/checkout@v4
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version-file: package.json
+          node-version: 20
           cache: npm
           cache-dependency-path: package-lock.json
-      - name: Install node modules
-        run: npm install
-      - name: Presubmit check (e.g. lint, format)
+      - name: Install
+        run: npm ci --no-audit --fund=false
+      - name: Lint
         run: npm run presubmit
-      - name: Type-checking
-        run: npm run ts
+      - name: Test
+        run: npm test -- --run
+      - name: Build web
+        run: npm run build:web
