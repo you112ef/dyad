@@ -1,7 +1,7 @@
-import { ensureSchema, type EnvWithDb } from "./_db";
+import { ensureSchema } from "./_db";
 
-export const onRequest: PagesFunction = async ({ request, env }) => {
-  const db = (env as any as EnvWithDb).DYAD_DB;
+export const onRequest = async ({ request, env }: any) => {
+  const db = (env as any).DYAD_DB;
   if (!db)
     return new Response(
       JSON.stringify({ error: "Missing D1 binding DYAD_DB" }),
@@ -26,7 +26,7 @@ export const onRequest: PagesFunction = async ({ request, env }) => {
   }
 
   if (method === "POST") {
-    const { name } = await request.json<any>();
+    const { name } = await request.json();
     if (!name) return json({ error: "Missing name" }, 400);
     const now = new Date().toISOString();
     const result = await db
@@ -34,7 +34,6 @@ export const onRequest: PagesFunction = async ({ request, env }) => {
       .bind(name, now, now)
       .run();
     const appId = result.lastInsertRowId as number;
-    // create initial chat
     await db
       .prepare("INSERT INTO chats (appId, title, createdAt) VALUES (?, ?, ?)")
       .bind(appId, name, now)

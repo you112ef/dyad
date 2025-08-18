@@ -1,6 +1,4 @@
-export type EnvWithDb = { DYAD_DB: D1Database } & Record<string, any>;
-
-export async function ensureSchema(env: EnvWithDb) {
+export async function ensureSchema(env: any) {
   // Create tables if they don't exist
   // Note: D1 doesn't support IF NOT EXISTS for ALTER TABLE; keep simple schema
   await env.DYAD_DB.exec(

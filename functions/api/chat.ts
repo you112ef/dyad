@@ -1,6 +1,4 @@
-// No SDK imports; use fetch-compatible streaming for all providers
-
-export const onRequest: PagesFunction = async (ctx) => {
+export const onRequest = async (ctx: any) => {
   const { request, env } = ctx;
 
   if (request.method !== "POST") {
@@ -106,7 +104,6 @@ async function streamOpenRouterCompatible(
     });
   }
 
-  // Parse SSE and emit plain text tokens
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
   const reader = resp.body.getReader();

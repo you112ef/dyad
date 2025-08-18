@@ -1,7 +1,7 @@
-import { ensureSchema, type EnvWithDb } from "./_db";
+import { ensureSchema } from "./_db";
 
-export const onRequest: PagesFunction = async ({ request, env }) => {
-  const db = (env as any as EnvWithDb).DYAD_DB;
+export const onRequest = async ({ request, env }: any) => {
+  const db = (env as any).DYAD_DB;
   if (!db) return j({ error: "Missing D1 binding DYAD_DB" }, 500);
   await ensureSchema(env as any);
   const url = new URL(request.url);
@@ -27,7 +27,7 @@ export const onRequest: PagesFunction = async ({ request, env }) => {
   }
 
   if (method === "PUT" || method === "POST") {
-    const { appId, path, content } = await request.json<any>();
+    const { appId, path, content } = await request.json();
     if (!appId || !path) return j({ error: "Missing appId or path" }, 400);
     const now = new Date().toISOString();
     await db
