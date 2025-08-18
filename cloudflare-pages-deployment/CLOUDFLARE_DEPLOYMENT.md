@@ -46,7 +46,7 @@
    git init
    git add .
    git commit -m "Initial Dyad deployment"
-   git remote add origin https://github.com/[username]/dyad-deployment.git
+   git remote add origin https://github.com/you112ef/dyad.git
    git push -u origin main
    ```
 

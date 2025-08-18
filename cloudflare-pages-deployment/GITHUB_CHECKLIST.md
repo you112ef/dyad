@@ -29,8 +29,8 @@
 ## الطريقة 3: سطر الأوامر (للمطورين)
 - [ ] إعداد Git:
   ```bash
-  git config --global user.name "Your Name"
-  git config --global user.email "your.email@example.com"
+  git config --global user.name "you112ef"
+  git config --global user.email "you112ef@users.noreply.github.com"
   ```
 - [ ] إنشاء مستودع على GitHub.com (كما في الطريقة 2)
 - [ ] في Terminal/Command Prompt:
@@ -39,7 +39,7 @@
   git init
   git add .
   git commit -m "Initial Dyad deployment for Cloudflare Pages"
-  git remote add origin https://github.com/USERNAME/dyad-cloudflare-pages.git
+  git remote add origin https://github.com/you112ef/dyad.git
   git branch -M main
   git push -u origin main
   ```
@@ -54,7 +54,7 @@
   ```
 
 ## بعد الرفع - التحقق:
-- [ ] المستودع موجود على: https://github.com/USERNAME/dyad-cloudflare-pages
+- [ ] المستودع موجود على: https://github.com/you112ef/dyad
 - [ ] جميع الملفات مرفوعة (379 ملف تقريباً)
 - [ ] ملفات مهمة موجودة:
   - [ ] index.html
