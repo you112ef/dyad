@@ -290,6 +290,7 @@ export function ChatInput({ chatId }: { chatId?: number }) {
           <AttachmentsList
             attachments={attachments}
             onRemove={removeAttachment}
+            onClearAll={clearAttachments}
           />
 
           {/* Use the DragDropOverlay component */}
@@ -310,11 +311,11 @@ export function ChatInput({ chatId }: { chatId?: number }) {
             {/* File attachment button */}
             <button
               onClick={handleAttachmentClick}
-              className="px-2 py-2 mt-1 mr-1 hover:bg-(--background-darkest) text-(--sidebar-accent-fg) rounded-lg disabled:opacity-50"
+              className="px-2 py-2 mt-1 mr-1 hover:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg disabled:opacity-50 transition-colors duration-200"
               disabled={isStreaming}
-              title="Attach files"
+              title="Attach files - Images, code files, documents and more"
             >
-              <Paperclip size={20} />
+              <Paperclip size={20} className={attachments.length > 0 ? "text-blue-500" : ""} />
             </button>
             <input
               type="file"
@@ -322,7 +323,7 @@ export function ChatInput({ chatId }: { chatId?: number }) {
               onChange={handleFileChange}
               className="hidden"
               multiple
-              accept=".jpg,.jpeg,.png,.gif,.webp,.txt,.md,.js,.ts,.html,.css,.json,.csv"
+              accept=".jpg,.jpeg,.png,.gif,.webp,.bmp,.svg,.txt,.md,.js,.jsx,.ts,.tsx,.html,.css,.scss,.sass,.less,.json,.xml,.csv,.yml,.yaml,.toml,.ini,.env,.py,.java,.c,.cpp,.h,.hpp,.cs,.php,.rb,.go,.rs,.swift,.kt,.scala,.sh,.bat,.ps1,.sql,.r,.m,.mm,.pl,.lua,.vim,.dockerfile,.gitignore,.gitattributes,.editorconfig,.prettierrc,.eslintrc,.stylelintrc,.babelrc,.webpack.config.js,.vite.config.js,.tsconfig.json,.package.json,.composer.json,.cargo.toml,.requirements.txt,.gemfile,.podfile"
             />
 
             {isStreaming ? (

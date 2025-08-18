@@ -150,11 +150,11 @@ export function ImportAppDialog({ isOpen, onClose }: ImportAppDialogProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <Alert className="border-blue-500/20 text-blue-500">
+        <Alert className="border-green-500/20 text-green-600 dark:text-green-400">
           <Info className="h-4 w-4" />
           <AlertDescription>
-            App import is an experimental feature. If you encounter any issues,
-            please report them using the Help button.
+            Import your existing projects into Dyad to start collaborating with AI.
+            Make sure your project folder contains the source code you want to work with.
           </AlertDescription>
         </Alert>
 

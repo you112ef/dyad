@@ -22,20 +22,48 @@ export function useAttachments() {
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    setIsDraggingOver(true);
+    e.stopPropagation();
+    if (e.dataTransfer.types.includes('Files')) {
+      setIsDraggingOver(true);
+    }
   };
 
-  const handleDragLeave = () => {
-    setIsDraggingOver(false);
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set to false if we're leaving the container entirely
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDraggingOver(false);
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDraggingOver(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const files = Array.from(e.dataTransfer.files);
-      setAttachments((attachments) => [...attachments, ...files]);
+      // Filter out unsupported files (optional)
+      const supportedFiles = files.filter(file => {
+        const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+        const supportedExtensions = [
+          '.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg',
+          '.txt', '.md', '.js', '.jsx', '.ts', '.tsx', '.html', '.css', 
+          '.scss', '.sass', '.less', '.json', '.xml', '.csv', '.yml', 
+          '.yaml', '.toml', '.ini', '.env', '.py', '.java', '.c', '.cpp', 
+          '.h', '.hpp', '.cs', '.php', '.rb', '.go', '.rs', '.swift', 
+          '.kt', '.scala', '.sh', '.bat', '.ps1', '.sql', '.r', '.m', 
+          '.mm', '.pl', '.lua', '.vim'
+        ];
+        return supportedExtensions.includes(extension);
+      });
+      
+      if (supportedFiles.length !== files.length) {
+        console.warn(`${files.length - supportedFiles.length} unsupported files were filtered out`);
+      }
+      
+      setAttachments((attachments) => [...attachments, ...supportedFiles]);
     }
   };
 

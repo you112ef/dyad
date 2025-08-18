@@ -3,16 +3,31 @@ import { FileText, X } from "lucide-react";
 interface AttachmentsListProps {
   attachments: File[];
   onRemove: (index: number) => void;
+  onClearAll?: () => void;
 }
 
 export function AttachmentsList({
   attachments,
   onRemove,
+  onClearAll,
 }: AttachmentsListProps) {
   if (attachments.length === 0) return null;
 
   return (
-    <div className="px-2 pt-2 flex flex-wrap gap-1">
+    <div className="px-2 pt-2">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs text-muted-foreground font-medium">
+          {attachments.length} file{attachments.length > 1 ? 's' : ''} attached
+        </span>
+        <button
+          onClick={onClearAll || (() => attachments.forEach((_, index) => onRemove(index)))}
+          className="text-xs text-red-500 hover:text-red-700 underline"
+          title="Remove all attachments"
+        >
+          Clear all
+        </button>
+      </div>
+      <div className="flex flex-wrap gap-1">
       {attachments.map((file, index) => (
         <div
           key={index}
@@ -56,6 +71,7 @@ export function AttachmentsList({
           </button>
         </div>
       ))}
+      </div>
     </div>
   );
 }
