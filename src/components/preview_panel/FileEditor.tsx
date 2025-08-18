@@ -117,7 +117,7 @@ export const FileEditor = ({ appId, filePath }: FileEditorProps) => {
   const saveFile = async () => {
     if (
       !appId ||
-      !currentValueRef.current ||
+      currentValueRef.current === undefined ||
       !needsSaveRef.current ||
       isSavingRef.current
     )
@@ -126,8 +126,23 @@ export const FileEditor = ({ appId, filePath }: FileEditorProps) => {
     try {
       isSavingRef.current = true;
 
-      const ipcClient = IpcClient.getInstance();
-      await ipcClient.editAppFile(appId, filePath, currentValueRef.current);
+      // Prefer web API when available
+      try {
+        const res = await fetch("/api/files", {
+          method: "PUT",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            appId,
+            path: filePath,
+            content: currentValueRef.current,
+          }),
+        });
+        if (!res.ok) throw new Error(`Failed to save via API: ${res.status}`);
+      } catch (e) {
+        // Fallback to IPC (desktop)
+        const ipcClient = IpcClient.getInstance();
+        await ipcClient.editAppFile(appId, filePath, currentValueRef.current);
+      }
 
       originalValueRef.current = currentValueRef.current;
       needsSaveRef.current = false;

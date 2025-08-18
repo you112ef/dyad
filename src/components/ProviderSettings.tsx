@@ -68,7 +68,9 @@ export function ProviderSettingsGrid() {
   if (isLoading) {
     return (
       <div className="px-3 py-4 sm:p-6">
-        <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">AI Providers</h2>
+        <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">
+          AI Providers
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {[1, 2, 3, 4, 5].map((i) => (
             <Card key={i} className="border-border">
@@ -86,7 +88,9 @@ export function ProviderSettingsGrid() {
   if (error) {
     return (
       <div className="px-3 py-4 sm:p-6">
-        <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">AI Providers</h2>
+        <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">
+          AI Providers
+        </h2>
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
@@ -100,7 +104,9 @@ export function ProviderSettingsGrid() {
 
   return (
     <div className="px-3 py-4 sm:p-6">
-      <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">AI Providers</h2>
+      <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">
+        AI Providers
+      </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {providers
           ?.filter((p) => p.type !== "local")

@@ -24,7 +24,10 @@ export function useLanguageModelProviders() {
         if (res.ok) {
           const apiProviders = (await res.json()) as LanguageModelProvider[];
           // Annotate api providers as available via API env
-          const apiAnnotated = apiProviders.map((p) => ({ ...(p as any), availableViaApi: true }));
+          const apiAnnotated = apiProviders.map((p) => ({
+            ...(p as any),
+            availableViaApi: true,
+          }));
           // Merge unique by id
           const map = new Map<string, any>();
           [...base, ...local, ...apiAnnotated].forEach((p) => map.set(p.id, p));
@@ -43,7 +46,9 @@ export function useLanguageModelProviders() {
     if (providerSettings?.apiKey?.value) {
       return true;
     }
-    const providerData = queryResult.data?.find((p) => p.id === provider) as any;
+    const providerData = queryResult.data?.find(
+      (p) => p.id === provider,
+    ) as any;
     if (providerData?.availableViaApi) {
       return true;
     }
