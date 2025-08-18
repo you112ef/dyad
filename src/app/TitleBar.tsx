@@ -71,7 +71,7 @@ export const TitleBar = () => {
 
   return (
     <>
-      <div className="@container z-11 w-full h-10 sm:h-11 bg-(--sidebar) absolute top-0 left-0 app-region-drag flex items-center">
+      <div className="@container z-50 w-full h-10 sm:h-11 bg-(--sidebar) fixed top-0 left-0 right-0 app-region-drag flex items-center">
         <div className="pl-20"></div>
         <img
           src={logo}

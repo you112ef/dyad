@@ -34,7 +34,7 @@ export const MessagesList = forwardRef<HTMLDivElement, MessagesListProps>(
 
     return (
       <div
-        className="flex-1 overflow-y-auto px-2 sm:px-4 pt-3 sm:pt-4 pb-24 sm:pb-28"
+        className="flex-1 overflow-y-auto px-2 sm:px-4 pt-3 sm:pt-4 pb-28 sm:pb-32"
         ref={ref}
       >
         {messages.length > 0 ? (
