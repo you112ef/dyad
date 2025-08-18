@@ -12,9 +12,14 @@ import {
   MutationCache,
 } from "@tanstack/react-query";
 import { showError } from "./lib/toast";
+import "./styles/globals.css";
 
 // @ts-ignore
-console.log("Running in mode:", import.meta.env.MODE, typeof (window as any)?.electron === "undefined" ? "(web)" : "(electron)");
+console.log(
+  "Running in mode:",
+  import.meta.env.MODE,
+  typeof (window as any)?.electron === "undefined" ? "(web)" : "(electron)",
+);
 
 interface MyMeta extends Record<string, unknown> {
   showErrorToast: boolean;

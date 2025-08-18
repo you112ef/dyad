@@ -1,8 +1,10 @@
 /*
   X-Robots-Tag: all
-
-/*
   Service-Worker-Allowed: /
-
-/*
   Cache-Control: public, max-age=0, must-revalidate
+
+/api/*
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+  Access-Control-Allow-Headers: Content-Type, Authorization
+  Content-Type: application/json

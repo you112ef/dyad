@@ -5,7 +5,7 @@ import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     tailwindcss(),
@@ -112,6 +112,7 @@ export default defineConfig({
   build: {
     chunkSizeWarningLimit: 3000,
     rollupOptions: {
+      input: mode === 'production' ? '/index-web.html' : '/index.html',
       output: {
         manualChunks: {
           react: ["react", "react-dom"],
@@ -122,4 +123,4 @@ export default defineConfig({
       },
     },
   },
-});
+}))

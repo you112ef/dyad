@@ -1,14 +1,116 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MessageSquare, X, Palette } from "lucide-react";
 import { Button } from "./ui/button";
+import { WebIpcClient } from "../ipc/web_ipc_client";
 
 interface FixedLayoutProps {
   children?: React.ReactNode;
 }
 
+// Simple chat interface for web demo
+interface Message {
+  id: number;
+  role: "user" | "assistant";
+  content: string;
+}
+
+interface DemoChat {
+  id: number;
+  title: string;
+  messages: Message[];
+}
+
 export function FixedLayout({ children }: FixedLayoutProps) {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
+  const [currentChat, setCurrentChat] = useState<DemoChat | null>(null);
+  const [inputMessage, setInputMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [webClient, setWebClient] = useState<WebIpcClient | null>(null);
+
+  useEffect(() => {
+    // Initialize web client
+    const client = new WebIpcClient();
+    setWebClient(client);
+
+    // Create or load a demo chat
+    initializeDemoChat(client);
+  }, []);
+
+  const initializeDemoChat = async (client: WebIpcClient) => {
+    try {
+      const chats = await client.getChats();
+      if (chats.length > 0) {
+        const chat = await client.getChat(chats[0].id);
+        setCurrentChat(chat as DemoChat);
+      } else {
+        // Create a demo chat
+        const chatId = await client.createChat(0);
+        const newChat = await client.getChat(chatId);
+        setCurrentChat({
+          id: newChat.id,
+          title: "محادثة تجريبية",
+          messages: [],
+        });
+      }
+    } catch (error) {
+      console.error("Error initializing chat:", error);
+      // Fallback demo chat
+      setCurrentChat({
+        id: 1,
+        title: "محادثة تجريبية",
+        messages: [
+          {
+            id: 1,
+            role: "assistant",
+            content:
+              "مرحباً! أنا Dyad AI. يمكنني مساعدتك في تطوير التطبيقات. اكتب رسالة لتجربة الواجهة!",
+          },
+        ],
+      });
+    }
+  };
+
+  const sendMessage = async () => {
+    if (!inputMessage.trim() || !webClient || !currentChat) return;
+
+    setIsLoading(true);
+
+    try {
+      webClient.streamMessage(inputMessage, {
+        chatId: currentChat.id,
+        onUpdate: (messages) => {
+          setCurrentChat((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  messages: messages as Message[],
+                }
+              : null,
+          );
+        },
+        onEnd: () => {
+          setIsLoading(false);
+        },
+        onError: (error) => {
+          console.error("Chat error:", error);
+          setIsLoading(false);
+        },
+      });
+
+      setInputMessage("");
+    } catch (error) {
+      console.error("Error sending message:", error);
+      setIsLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
 
   return (
     <div className="h-screen bg-background relative">
@@ -157,21 +259,68 @@ export function FixedLayout({ children }: FixedLayoutProps) {
             </Button>
           </div>
 
-          <div className="h-80 p-6 flex items-center justify-center">
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center">
-                <MessageSquare
-                  size={24}
-                  className="text-blue-600 dark:text-blue-400"
+          <div className="h-80 flex flex-col">
+            {/* Chat Messages */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {currentChat?.messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${
+                    message.role === "user" ? "justify-end" : "justify-start"
+                  }`}
+                >
+                  <div
+                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                      message.role === "user"
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap">
+                      {message.content}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-lg">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                      <div
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: "0.1s" }}
+                      ></div>
+                      <div
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: "0.2s" }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Chat Input */}
+            <div className="border-t border-gray-200 dark:border-gray-700 p-4">
+              <div className="flex space-x-3 rtl:space-x-reverse">
+                <input
+                  type="text"
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="اكتب رسالتك هنا..."
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={isLoading}
                 />
+                <Button
+                  onClick={sendMessage}
+                  disabled={!inputMessage.trim() || isLoading}
+                  className="px-6 bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  إرسال
+                </Button>
               </div>
-              <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">
-                اختر تطبيقاً للبدء
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                يرجى اختيار تطبيق من الشريط الجانبي لبدء محادثة مع الذكاء
-                الاصطناعي
-              </p>
             </div>
           </div>
         </div>
