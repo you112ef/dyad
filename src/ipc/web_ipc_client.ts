@@ -187,6 +187,24 @@ export class WebIpcClient {
   }
 
   public async getApp(appId: number): Promise<App> {
+    try {
+      const [appRes, filesRes] = await Promise.all([
+        fetch(`/api/apps?id=${appId}`),
+        fetch(`/api/files?appId=${appId}&list=1`),
+      ]);
+      const appRow = appRes.ok ? await appRes.json() : null;
+      const files = filesRes.ok ? await filesRes.json() : [];
+      if (appRow) {
+        return {
+          id: appRow.id,
+          name: appRow.name,
+          path: "",
+          files,
+          createdAt: new Date(appRow.createdAt),
+          updatedAt: new Date(appRow.updatedAt),
+        } as any;
+      }
+    } catch {}
     const app = this.readApps().find((a) => a.id === appId);
     if (!app) throw new Error("App not found");
     return app;

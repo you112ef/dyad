@@ -16,8 +16,21 @@ export function useLoadAppFile(appId: number | null, filePath: string | null) {
 
       setLoading(true);
       try {
-        const ipcClient = IpcClient.getInstance();
-        const fileContent = await ipcClient.readAppFile(appId, filePath);
+        // Try web API first
+        let fileContent: string | null = null;
+        try {
+          const res = await fetch(
+            `/api/files?appId=${appId}&path=${encodeURIComponent(filePath)}`,
+          );
+          if (res.ok) {
+            const j = await res.json();
+            fileContent = j?.content ?? "";
+          }
+        } catch {}
+        if (fileContent === null) {
+          const ipcClient = IpcClient.getInstance();
+          fileContent = await ipcClient.readAppFile(appId, filePath);
+        }
 
         setContent(fileContent);
         setError(null);
@@ -43,8 +56,20 @@ export function useLoadAppFile(appId: number | null, filePath: string | null) {
 
     setLoading(true);
     try {
-      const ipcClient = IpcClient.getInstance();
-      const fileContent = await ipcClient.readAppFile(appId, filePath);
+      let fileContent: string | null = null;
+      try {
+        const res = await fetch(
+          `/api/files?appId=${appId}&path=${encodeURIComponent(filePath)}`,
+        );
+        if (res.ok) {
+          const j = await res.json();
+          fileContent = j?.content ?? "";
+        }
+      } catch {}
+      if (fileContent === null) {
+        const ipcClient = IpcClient.getInstance();
+        fileContent = await ipcClient.readAppFile(appId, filePath);
+      }
       setContent(fileContent);
       setError(null);
     } catch (error) {
