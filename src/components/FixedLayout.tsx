@@ -11,9 +11,9 @@ export function FixedLayout({ children }: FixedLayoutProps) {
   const [showPreview, setShowPreview] = useState(true);
 
   return (
-    <div className="h-screen flex flex-col bg-background">
+    <div className="h-screen bg-background relative">
       {/* Fixed Header */}
-      <div className="h-16 bg-background/95 backdrop-blur-sm border-b border-border flex items-center justify-between px-6 z-50">
+      <div className="fixed top-0 left-0 right-0 h-16 bg-background/95 backdrop-blur-sm border-b border-border flex items-center justify-between px-6 z-[100]">
         <div className="flex items-center space-x-4 rtl:space-x-reverse">
           <div className="flex items-center space-x-2 rtl:space-x-reverse">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -56,7 +56,7 @@ export function FixedLayout({ children }: FixedLayoutProps) {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="pt-16 h-screen flex overflow-hidden">
         {/* Left Panel - App Content */}
         <div className={`${showPreview ? "flex-1" : "w-full"} flex flex-col`}>
           <div className="flex-1 p-6 overflow-auto">
@@ -138,7 +138,7 @@ export function FixedLayout({ children }: FixedLayoutProps) {
 
       {/* Simple Chat Panel */}
       {isChatOpen && (
-        <div className="fixed bottom-0 left-0 right-0 z-30 h-96 bg-white dark:bg-gray-900 border-t border-border shadow-lg">
+        <div className="fixed bottom-0 left-0 right-0 z-[90] h-96 bg-white dark:bg-gray-900 border-t border-border shadow-lg">
           <div className="h-12 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800 flex items-center justify-between px-6">
             <div className="flex items-center space-x-3 rtl:space-x-reverse">
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
@@ -157,7 +157,7 @@ export function FixedLayout({ children }: FixedLayoutProps) {
             </Button>
           </div>
 
-          <div className="flex-1 p-6 flex items-center justify-center">
+          <div className="h-80 p-6 flex items-center justify-center">
             <div className="text-center">
               <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center">
                 <MessageSquare
