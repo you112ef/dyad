@@ -112,7 +112,7 @@ export default defineConfig(({ mode }) => ({
   build: {
     chunkSizeWarningLimit: 3000,
     rollupOptions: {
-      input: mode === 'production' ? '/index-web.html' : '/index.html',
+      input: '/index.html',
       output: {
         manualChunks: {
           react: ["react", "react-dom"],
