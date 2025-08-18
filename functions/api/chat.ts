@@ -1,4 +1,4 @@
-import { OpenAI } from "openai";
+// No SDK imports; use fetch-compatible streaming for all providers
 
 export const onRequest: PagesFunction = async (ctx) => {
   const { request, env } = ctx;
@@ -23,10 +23,12 @@ export const onRequest: PagesFunction = async (ctx) => {
   try {
     switch (provider) {
       case "openai":
-        return await streamOpenAI(
+        return await streamOpenRouterCompatible(
           env.OPENAI_API_KEY as string,
+          "https://api.openai.com/v1/chat/completions",
           model,
           messages,
+          { Authorization: `Bearer ${env.OPENAI_API_KEY as string}` },
         );
       case "anthropic":
         return await streamOpenRouterCompatible(
@@ -69,44 +71,6 @@ export const onRequest: PagesFunction = async (ctx) => {
     );
   }
 };
-
-async function streamOpenAI(
-  apiKey: string,
-  model: string,
-  messages: Array<{ role: string; content: string }>,
-) {
-  if (!apiKey) {
-    return new Response(JSON.stringify({ error: "Missing OPENAI_API_KEY" }), {
-      status: 400,
-      headers: { "content-type": "application/json" },
-    });
-  }
-
-  const client = new OpenAI({ apiKey, baseURL: "https://api.openai.com/v1" });
-  const stream = await client.chat.completions.create({
-    model,
-    messages,
-    stream: true,
-  });
-
-  const encoder = new TextEncoder();
-  const readable = new ReadableStream({
-    async start(controller) {
-      for await (const chunk of stream) {
-        const token = chunk.choices?.[0]?.delta?.content ?? "";
-        if (token) controller.enqueue(encoder.encode(token));
-      }
-      controller.close();
-    },
-  });
-
-  return new Response(readable, {
-    headers: {
-      "content-type": "text/plain; charset=utf-8",
-      "cache-control": "no-store",
-    },
-  });
-}
 
 async function streamOpenRouterCompatible(
   apiKey: string,
