@@ -19,6 +19,8 @@ import type {
   TokenCountResult,
 } from "./ipc_types";
 import type { UserSettings } from "@/lib/schemas";
+import { selectFolder, fileExists, serializeFiles, type FolderSelection } from "@/utils/webFileUtils";
+import { estimateTokens, getContextWindow, getModelFamily } from "../utils/tokenEstimation";
 
 /**
  * Minimal web implementation to run the UI on Cloudflare Pages.
@@ -316,7 +318,15 @@ export class WebIpcClient {
   }
 
   public async deleteApp(appId: number): Promise<void> {
+    // Remove app from apps list
     this.writeApps(this.readApps().filter((a) => a.id !== appId));
+    
+    // Remove associated files
+    localStorage.removeItem(`dyad:web:app-files:${appId}`);
+    
+    // Remove associated chats
+    const chats = this.readChats().filter(c => (c as any).appId !== appId);
+    this.writeChats(chats);
   }
 
   public async renameApp(_args: {
@@ -338,7 +348,13 @@ export class WebIpcClient {
   }): Promise<void> {}
 
   public async getNodejsStatus(): Promise<NodeSystemInfo> {
-    return { nodeVersion: null, pnpmVersion: null, nodeDownloadUrl: "" };
+    // In web environment, Node.js is not available locally
+    // Provide helpful information for users about web limitations
+    return { 
+      nodeVersion: "Web Environment - Node.js not available", 
+      pnpmVersion: "Web Environment - pnpm not available", 
+      nodeDownloadUrl: "https://nodejs.org/en/download/" 
+    };
   }
 
   // GitHub device flow no-ops
@@ -447,15 +463,32 @@ export class WebIpcClient {
   }
 
   public async countTokens(
-    _params: TokenCountParams,
+    params: TokenCountParams,
   ): Promise<TokenCountResult> {
+    // Estimate input tokens using our client-side utility
+    const inputEstimate = estimateTokens(params.input, 'generic');
+    const inputTokens = inputEstimate.tokens;
+    
+    // For web client, we can't access database for chat history or codebase
+    // Set reasonable estimates based on typical usage patterns
+    const messageHistoryTokens = 0; // Would need database access
+    const codebaseTokens = 0; // Would need file system access  
+    
+    // Estimate system prompt tokens (typical system prompts are ~500-1500 tokens)
+    const systemPromptTokens = 1000; // Reasonable default estimate
+    
+    const totalTokens = inputTokens + messageHistoryTokens + codebaseTokens + systemPromptTokens;
+    
+    // Use a reasonable default context window (most modern models support 128k+)
+    const contextWindow = getContextWindow('gpt-4-turbo'); // 128k tokens
+    
     return {
-      totalTokens: 0,
-      messageHistoryTokens: 0,
-      codebaseTokens: 0,
-      inputTokens: 0,
-      systemPromptTokens: 0,
-      contextWindow: 0,
+      totalTokens,
+      messageHistoryTokens,
+      codebaseTokens,
+      inputTokens,
+      systemPromptTokens,
+      contextWindow,
     };
   }
 
@@ -569,21 +602,162 @@ export class WebIpcClient {
     path: string | null;
     name: string | null;
   }> {
-    return { path: null, name: null };
+    try {
+      const selection = await selectFolder();
+      // Store the selection for later use in importApp
+      this.writeLocal('dyad:web:pending-import', selection);
+      return {
+        path: selection.path,
+        name: selection.name
+      };
+    } catch (error: any) {
+      if (error.message.includes('cancelled')) {
+        return { path: null, name: null };
+      }
+      throw error;
+    }
   }
 
   public async checkAiRules(_params: { path: string }): Promise<{ exists: boolean }> {
-    return { exists: false };
+    try {
+      const pendingImport = this.readLocal<FolderSelection>('dyad:web:pending-import');
+      if (!pendingImport) {
+        return { exists: false };
+      }
+      
+      const hasAiRules = fileExists(pendingImport.files, 'AI_RULES.md');
+      return { exists: hasAiRules };
+    } catch (error) {
+      console.warn('Error checking AI_RULES.md:', error);
+      return { exists: false };
+    }
   }
 
   public async importApp(_params: ImportAppParams): Promise<ImportAppResult> {
-    const app = await this.createApp({ name: _params.appName });
-    return { appId: app.app.id, chatId: app.chatId };
+    try {
+      const pendingImport = this.readLocal<FolderSelection>('dyad:web:pending-import');
+      if (!pendingImport) {
+        throw new Error('No folder selected for import');
+      }
+      
+      // Create the app with the imported files
+      const app = await this.createApp({ name: _params.appName });
+      
+      // Store the imported files in local storage with the app
+      const serializedFiles = serializeFiles(pendingImport.files);
+      this.writeLocal(`dyad:web:app-files:${app.app.id}`, serializedFiles);
+      
+      // Update the app with file information
+      const apps = this.readApps();
+      const appIndex = apps.findIndex(a => a.id === app.app.id);
+      if (appIndex !== -1) {
+        apps[appIndex].files = pendingImport.files.map(f => f.path);
+        apps[appIndex].path = pendingImport.path;
+        this.writeApps(apps);
+      }
+      
+      // Clean up pending import
+      localStorage.removeItem('dyad:web:pending-import');
+      
+      return { appId: app.app.id, chatId: app.chatId };
+    } catch (error: any) {
+      // Clean up on error
+      localStorage.removeItem('dyad:web:pending-import');
+      throw new Error(`Failed to import app: ${error.message}`);
+    }
   }
 
   public async checkAppName(_params: { appName: string }): Promise<{ exists: boolean }> {
-    return { exists: false };
+    const apps = this.readApps();
+    const exists = apps.some(app => 
+      app.name.toLowerCase() === _params.appName.toLowerCase()
+    );
+    return { exists };
   }
 
   public async renameBranch(_params: RenameBranchParams): Promise<void> {}
+
+  /**
+   * Read file content for web-imported apps
+   */
+  public async readAppFile(appId: number, filePath: string): Promise<string | null> {
+    try {
+      const files = this.readLocal<any[]>(`dyad:web:app-files:${appId}`);
+      if (!files) {
+        return null;
+      }
+      
+      const file = files.find(f => f.path === filePath);
+      if (!file) {
+        return null;
+      }
+      
+      if (file.type === 'text') {
+        return file.content;
+      } else {
+        // For binary files, return base64
+        return file.content;
+      }
+    } catch (error) {
+      console.warn(`Failed to read file ${filePath}:`, error);
+      return null;
+    }
+  }
+  
+  /**
+   * List all files for an imported app
+   */
+  public async listAppFiles(appId: number): Promise<string[]> {
+    try {
+      const files = this.readLocal<any[]>(`dyad:web:app-files:${appId}`);
+      if (!files) {
+        return [];
+      }
+      
+      return files.map(f => f.path);
+    } catch (error) {
+      console.warn(`Failed to list files for app ${appId}:`, error);
+      return [];
+    }
+  }
+  
+  /**
+   * Write/update file content for web-imported apps
+   */
+  public async writeAppFile(appId: number, filePath: string, content: string): Promise<void> {
+    try {
+      const files = this.readLocal<any[]>(`dyad:web:app-files:${appId}`) || [];
+      
+      const existingFileIndex = files.findIndex(f => f.path === filePath);
+      
+      const fileData = {
+        path: filePath,
+        content,
+        type: 'text',
+        size: content.length,
+        lastModified: Date.now(),
+        name: filePath.split('/').pop() || filePath
+      };
+      
+      if (existingFileIndex >= 0) {
+        files[existingFileIndex] = fileData;
+      } else {
+        files.push(fileData);
+      }
+      
+      this.writeLocal(`dyad:web:app-files:${appId}`, files);
+      
+      // Update app's file list
+      const apps = this.readApps();
+      const appIndex = apps.findIndex(a => a.id === appId);
+      if (appIndex !== -1) {
+        if (!apps[appIndex].files.includes(filePath)) {
+          apps[appIndex].files.push(filePath);
+          this.writeApps(apps);
+        }
+      }
+    } catch (error: any) {
+      throw new Error(`Failed to write file ${filePath}: ${error.message}`);
+    }
+  }
 }

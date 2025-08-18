@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { IpcClient } from "@/ipc/ipc_client";
 import { useMutation } from "@tanstack/react-query";
 import { showError, showSuccess } from "@/lib/toast";
-import { Folder, X, Loader2, Info } from "lucide-react";
+import { Folder, X, Loader2, Info, Upload } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -27,6 +27,7 @@ import {
 import { selectedAppIdAtom } from "@/atoms/appAtoms";
 import { useSetAtom } from "jotai";
 import { useLoadApps } from "@/hooks/useLoadApps";
+import { createDragDropHandlers, isFileSystemAccessSupported, getBrowserCompatibilityMessage, checkMinimumBrowserSupport, type FolderSelection } from "@/utils/webFileUtils";
 
 interface ImportAppDialogProps {
   isOpen: boolean;
@@ -39,6 +40,13 @@ export function ImportAppDialog({ isOpen, onClose }: ImportAppDialogProps) {
   const [customAppName, setCustomAppName] = useState<string>("");
   const [nameExists, setNameExists] = useState<boolean>(false);
   const [isCheckingName, setIsCheckingName] = useState<boolean>(false);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [dragDropSupported] = useState<boolean>(true); // Drag and drop is widely supported
+  const [fileSystemAccessSupported] = useState<boolean>(isFileSystemAccessSupported());
+  const [browserSupport] = useState(() => checkMinimumBrowserSupport());
+  const [compatibilityMessage] = useState(() => getBrowserCompatibilityMessage());
+  const dialogRef = useRef<HTMLDivElement>(null);
+  
   const navigate = useNavigate();
   const { streamMessage } = useStreamChat({ hasChatId: false });
   const { refreshApps } = useLoadApps();
@@ -118,6 +126,82 @@ export function ImportAppDialog({ isOpen, onClose }: ImportAppDialogProps) {
   const handleSelectFolder = () => {
     selectFolderMutation.mutate();
   };
+  
+  // Handle drag and drop
+  const handleFilesDropped = async (selection: FolderSelection) => {
+    try {
+      // Store the selection temporarily
+      const result = {
+        path: selection.path,
+        name: selection.name
+      };
+      
+      setSelectedPath(result.path);
+      setCustomAppName(result.name || '');
+      
+      // Check AI rules and app name
+      const aiRulesCheck = await IpcClient.getInstance().checkAiRules({
+        path: result.path
+      });
+      setHasAiRules(aiRulesCheck.exists);
+      
+      if (result.name) {
+        await checkAppName(result.name);
+      }
+      
+      setIsDragging(false);
+    } catch (error: any) {
+      showError(`Failed to process dropped files: ${error.message}`);
+      setIsDragging(false);
+    }
+  };
+  
+  const handleDragError = (error: Error) => {
+    showError(error.message);
+    setIsDragging(false);
+  };
+  
+  // Set up drag and drop handlers
+  useEffect(() => {
+    if (!dialogRef.current) return;
+    
+    const { handleDragOver, handleDragEnter, handleDragLeave, handleDrop } = createDragDropHandlers(
+      handleFilesDropped,
+      handleDragError
+    );
+    
+    const element = dialogRef.current;
+    
+    const onDragEnter = (e: DragEvent) => {
+      handleDragEnter(e);
+      setIsDragging(true);
+    };
+    
+    const onDragLeave = (e: DragEvent) => {
+      handleDragLeave(e);
+      // Only set dragging to false if we're leaving the dialog entirely
+      if (!element.contains(e.relatedTarget as Node)) {
+        setIsDragging(false);
+      }
+    };
+    
+    const onDrop = (e: DragEvent) => {
+      handleDrop(e);
+      setIsDragging(false);
+    };
+    
+    element.addEventListener('dragover', handleDragOver);
+    element.addEventListener('dragenter', onDragEnter);
+    element.addEventListener('dragleave', onDragLeave);
+    element.addEventListener('drop', onDrop);
+    
+    return () => {
+      element.removeEventListener('dragover', handleDragOver);
+      element.removeEventListener('dragenter', onDragEnter);
+      element.removeEventListener('dragleave', onDragLeave);
+      element.removeEventListener('drop', onDrop);
+    };
+  }, [isOpen]);
 
   const handleImport = () => {
     importAppMutation.mutate();
@@ -128,6 +212,7 @@ export function ImportAppDialog({ isOpen, onClose }: ImportAppDialogProps) {
     setHasAiRules(null);
     setCustomAppName("");
     setNameExists(false);
+    setIsDragging(false);
   };
 
   const handleAppNameChange = async (
@@ -142,45 +227,103 @@ export function ImportAppDialog({ isOpen, onClose }: ImportAppDialogProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent ref={dialogRef} className={isDragging ? "ring-2 ring-blue-500 ring-offset-2" : ""}>
         <DialogHeader>
           <DialogTitle>Import App</DialogTitle>
           <DialogDescription>
-            Select an existing app folder to import into Dyad.
+            {fileSystemAccessSupported 
+              ? "Select a folder or drag and drop your project folder here."
+              : "Select files from your project folder or drag and drop them here."
+            }
           </DialogDescription>
         </DialogHeader>
+
+        {isDragging && (
+          <div className="absolute inset-0 bg-blue-50/90 dark:bg-blue-950/90 flex items-center justify-center z-50 rounded-lg border-2 border-dashed border-blue-500">
+            <div className="text-center">
+              <Upload className="h-12 w-12 text-blue-500 mx-auto mb-2" />
+              <p className="text-lg font-medium text-blue-600 dark:text-blue-400">Drop your project folder here</p>
+              <p className="text-sm text-blue-500">Release to import your project</p>
+            </div>
+          </div>
+        )}
 
         <Alert className="border-green-500/20 text-green-600 dark:text-green-400">
           <Info className="h-4 w-4" />
           <AlertDescription>
             Import your existing projects into Dyad to start collaborating with AI.
-            Make sure your project folder contains the source code you want to work with.
+            {fileSystemAccessSupported 
+              ? " You can browse for a folder or drag and drop it here."
+              : " Select files or drag them here (folder structure will be preserved)."
+            }
           </AlertDescription>
         </Alert>
+        
+        {!browserSupport.supported && (
+          <Alert className="border-red-500/20 text-red-600 dark:text-red-400">
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              {browserSupport.message}
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {browserSupport.supported && (
+          <Alert className="border-blue-500/20 text-blue-600 dark:text-blue-400">
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              {compatibilityMessage}
+            </AlertDescription>
+          </Alert>
+        )}
 
         <div className="py-4">
           {!selectedPath ? (
-            <Button
-              onClick={handleSelectFolder}
-              disabled={selectFolderMutation.isPending}
-              className="w-full"
-            >
-              {selectFolderMutation.isPending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Folder className="mr-2 h-4 w-4" />
-              )}
-              {selectFolderMutation.isPending
-                ? "Selecting folder..."
-                : "Select Folder"}
-            </Button>
+            <div className="space-y-4">
+              <div className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                isDragging 
+                  ? "border-blue-500 bg-blue-50 dark:bg-blue-950/50" 
+                  : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
+              }`}>
+                <Upload className={`h-12 w-12 mx-auto mb-4 ${
+                  isDragging ? "text-blue-500" : "text-gray-400"
+                }`} />
+                <p className="text-lg font-medium mb-2">
+                  {isDragging ? "Drop your project folder here" : "Drag & Drop Project Folder"}
+                </p>
+                <p className="text-sm text-gray-500 mb-4">
+                  {fileSystemAccessSupported
+                    ? "Drag a folder here or click the button below to browse"
+                    : "Drag files here or click the button below to select files"
+                  }
+                </p>
+                
+                <Button
+                  onClick={handleSelectFolder}
+                  disabled={selectFolderMutation.isPending || isDragging || !browserSupport.supported}
+                  variant="outline"
+                  className="min-w-[140px]"
+                >
+                  {selectFolderMutation.isPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Folder className="mr-2 h-4 w-4" />
+                  )}
+                  {selectFolderMutation.isPending
+                    ? "Selecting..."
+                    : fileSystemAccessSupported
+                    ? "Browse Folder"
+                    : "Select Files"}
+                </Button>
+              </div>
+            </div>
           ) : (
             <div className="space-y-4">
-              <div className="rounded-md border p-4">
+              <div className="rounded-md border p-4 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium">Selected folder:</p>
-                    <p className="text-sm text-muted-foreground break-all">
+                    <p className="text-sm font-medium text-green-800 dark:text-green-200">Selected folder:</p>
+                    <p className="text-sm text-green-600 dark:text-green-300 break-all">
                       {selectedPath}
                     </p>
                   </div>
@@ -188,7 +331,7 @@ export function ImportAppDialog({ isOpen, onClose }: ImportAppDialogProps) {
                     variant="ghost"
                     size="sm"
                     onClick={handleClear}
-                    className="h-8 w-8 p-0 flex-shrink-0"
+                    className="h-8 w-8 p-0 flex-shrink-0 hover:bg-green-100 dark:hover:bg-green-900"
                     disabled={importAppMutation.isPending}
                   >
                     <X className="h-4 w-4" />
@@ -264,7 +407,7 @@ export function ImportAppDialog({ isOpen, onClose }: ImportAppDialogProps) {
           <Button
             onClick={handleImport}
             disabled={
-              !selectedPath || importAppMutation.isPending || nameExists
+              !selectedPath || importAppMutation.isPending || nameExists || !browserSupport.supported
             }
             className="min-w-[80px]"
           >
