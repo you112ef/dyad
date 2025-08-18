@@ -76,7 +76,8 @@ export class IpcClient {
   private chatStreams: Map<number, ChatStreamCallbacks>;
   private appStreams: Map<number, AppStreamCallbacks>;
   private constructor() {
-    const hasElectron = typeof window !== "undefined" && (window as any)?.electron?.ipcRenderer;
+    const hasElectron =
+      typeof window !== "undefined" && (window as any)?.electron?.ipcRenderer;
     if (hasElectron) {
       this.ipcRenderer = (window as any).electron.ipcRenderer as IpcRenderer;
     } else {
@@ -126,7 +127,9 @@ export class IpcClient {
             callbacks.onOutput({ type, message, appId, timestamp: Date.now() });
           }
         } else {
-          showError(new Error(`[IPC] Invalid app output data received: ${data}`));
+          showError(
+            new Error(`[IPC] Invalid app output data received: ${data}`),
+          );
         }
       });
 
@@ -281,18 +284,16 @@ export class IpcClient {
       )
         .then((fileDataArray) => {
           // Use invoke to start the stream and pass the chatId and attachments
-          this.ipcRenderer!
-            .invoke("chat:stream", {
-              prompt,
-              chatId,
-              redo,
-              attachments: fileDataArray,
-            })
-            .catch((err) => {
-              showError(err);
-              onError(String(err));
-              this.chatStreams.delete(chatId);
-            });
+          this.ipcRenderer!.invoke("chat:stream", {
+            prompt,
+            chatId,
+            redo,
+            attachments: fileDataArray,
+          }).catch((err) => {
+            showError(err);
+            onError(String(err));
+            this.chatStreams.delete(chatId);
+          });
         })
         .catch((err) => {
           showError(err);
@@ -301,17 +302,15 @@ export class IpcClient {
         });
     } else {
       // No attachments, proceed normally
-      this.ipcRenderer!
-        .invoke("chat:stream", {
-          prompt,
-          chatId,
-          redo,
-        })
-        .catch((err) => {
-          showError(err);
-          onError(String(err));
-          this.chatStreams.delete(chatId);
-        });
+      this.ipcRenderer!.invoke("chat:stream", {
+        prompt,
+        chatId,
+        redo,
+      }).catch((err) => {
+        showError(err);
+        onError(String(err));
+        this.chatStreams.delete(chatId);
+      });
     }
   }
 
@@ -380,7 +379,8 @@ export class IpcClient {
     removeNodeModules?: boolean,
   ): Promise<{ success: boolean }> {
     try {
-      if (this.isWeb()) return this.web!.restartApp(appId, onOutput, removeNodeModules);
+      if (this.isWeb())
+        return this.web!.restartApp(appId, onOutput, removeNodeModules);
       const result = await this.ipcRenderer!.invoke("restart-app", {
         appId,
         removeNodeModules,
@@ -427,7 +427,8 @@ export class IpcClient {
     appId: number;
     previousVersionId: string;
   }): Promise<void> {
-    if (this.isWeb()) return this.web!.revertVersion({ appId, previousVersionId });
+    if (this.isWeb())
+      return this.web!.revertVersion({ appId, previousVersionId });
     await this.ipcRenderer!.invoke("revert-version", {
       appId,
       previousVersionId,
@@ -727,7 +728,8 @@ export class IpcClient {
     contentType: string,
     data: any,
   ): Promise<void> {
-    if (this.isWeb()) return this.web!.uploadToSignedUrl(url, contentType, data);
+    if (this.isWeb())
+      return this.web!.uploadToSignedUrl(url, contentType, data);
     await this.ipcRenderer!.invoke("upload-to-signed-url", {
       url,
       contentType,
@@ -769,7 +771,10 @@ export class IpcClient {
   ): Promise<TokenCountResult> {
     try {
       if (this.isWeb()) return this.web!.countTokens(params);
-      const result = await this.ipcRenderer!.invoke("chat:count-tokens", params);
+      const result = await this.ipcRenderer!.invoke(
+        "chat:count-tokens",
+        params,
+      );
       return result as TokenCountResult;
     } catch (error) {
       showError(error);
@@ -879,7 +884,8 @@ export class IpcClient {
   }
 
   async deleteCustomLanguageModelProvider(providerId: string): Promise<void> {
-    if (this.isWeb()) return this.web!.deleteCustomLanguageModelProvider(providerId);
+    if (this.isWeb())
+      return this.web!.deleteCustomLanguageModelProvider(providerId);
     return this.ipcRenderer!.invoke("delete-custom-language-model-provider", {
       providerId,
     });

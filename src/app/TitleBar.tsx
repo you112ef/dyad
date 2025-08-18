@@ -21,11 +21,17 @@ export const TitleBar = () => {
   const { settings, refreshSettings } = useSettings();
   const [isSuccessDialogOpen, setIsSuccessDialogOpen] = useState(false);
   const [showWindowControls, setShowWindowControls] = useState(false);
+  const [ghUser, setGhUser] = useState<any>(null);
 
   useEffect(() => {
     const isWeb = typeof window !== "undefined" && !(window as any)?.electron;
     if (isWeb) {
       setShowWindowControls(false);
+      // Load GitHub user if session cookie exists
+      fetch("/api/auth/github/me")
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => setGhUser(d?.user || null))
+        .catch(() => {});
       return;
     }
     const checkPlatform = async () => {
@@ -88,6 +94,30 @@ export const TitleBar = () => {
         >
           {displayText}
         </Button>
+        {/* Web GitHub auth */}
+        {typeof window !== "undefined" &&
+          !(window as any)?.electron &&
+          (ghUser ? (
+            <div className="ml-2 flex items-center gap-2 no-app-region-drag">
+              <img
+                src={ghUser.avatar_url}
+                className="w-6 h-6 rounded-full"
+                alt="avatar"
+              />
+              <span className="text-xs">{ghUser.login}</span>
+            </div>
+          ) : (
+            <Button
+              className="ml-2 no-app-region-drag h-7"
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                window.location.href = "/api/auth/github/start";
+              }}
+            >
+              Sign in with GitHub
+            </Button>
+          ))}
         {isDyadPro && (
           <Button
             onClick={() => {
