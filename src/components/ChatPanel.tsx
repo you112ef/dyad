@@ -133,7 +133,7 @@ export function ChatPanel({
               ref={messagesContainerRef}
             />
             <ChatError error={error} onDismiss={() => setError(null)} />
-            <div className="sticky bottom-0 z-20 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t px-2 sm:px-4">
+            <div className="sticky bottom-0 z-30 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t px-2 sm:px-4">
               <ChatInput chatId={chatId} />
             </div>
           </div>
